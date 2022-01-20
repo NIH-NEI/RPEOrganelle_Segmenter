@@ -18,7 +18,7 @@ def generate_repinfo(_alphabets=None):
     """
     Input one of the alphabets based on specific file information
     :param _alphabets:
-    :return:
+    :return: list of replicate ids
     """
     allalphabets = ["B", "C", "D", "E", "F", "G"]
     if _alphabets is None:
@@ -54,9 +54,15 @@ def getwrprestack(fname):  # TODO: test, implement remaining part
     return w, r, w_, r_, fname
 
 
-def findtreatment(r):  # TODO: check with getwr for inconsistencies
+def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
+    """
+    Returns the type of treatement based on replicate id
+    :param r: replicate id ( converted to 0-9 range)
+    :return: treatment id
+    """
+    assert (r < 10, "error")
     treatment = None
-    if r <= 5:
+    if r < 5:
         treatment = 0
     else:
         treatment = 1

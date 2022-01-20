@@ -4,25 +4,89 @@ from aicsimageio import AICSImage
 from aicsimageio.writers import OmeTiffWriter
 from aicssegmentation.core.MO_threshold import MO
 from aicssegmentation.core.pre_processing_utils import intensity_normalization, image_smoothing_gaussian_slice_by_slice, \
-    suggest_normalization_param, image_smoothing_gaussian_3d, edge_preserving_smoothing_3d
+    image_smoothing_gaussian_3d, edge_preserving_smoothing_3d
 from aicssegmentation.core.seg_dot import dot_2d_slice_by_slice_wrapper, dot_3d_wrapper
 from aicssegmentation.core.utils import get_middle_frame, hole_filling, get_3dseed_from_mid_frame
 from aicssegmentation.core.utils import topology_preserving_thinning
 from aicssegmentation.core.vessel import filament_2d_wrapper, filament_3d_wrapper
 from scipy.ndimage import distance_transform_edt
+from scipy.stats import norm
 from skimage.feature import peak_local_max
 from skimage.measure import label
-from skimage.morphology import remove_small_objects, watershed, dilation, ball, closing, disk
+from skimage.morphology import remove_small_objects, dilation, ball, closing, disk
+from skimage.segmentation import watershed
+from src.stackio import Channel
 
-
-def segmentsec61tacks(fpath, savepath, params):
+def get_stack_channel(fpath, channelname, verbose= False):
+    if verbose:
+        print(f"getting {channelname} stack")
     reader = AICSImage(fpath)
     IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :].copy()
+    channelobject = Channel.channel(channelname)
+    return IMG[0, 0, :, :, :].copy(), channelobject
 
-    ################################
-    ## PARAMETERS for this step ##
-    intensity_scaling_param = suggest_normalization_param(struct_img0)  # [0.5, 5]  # [1, 2]  # [1.0, 9.0]
+
+def autoselect_normalization_parameters(imgstack, debug=False, percentile=99.99):
+    """
+    return suggested scaling parameter assuming the image is a representative example of this cell structure. Returns the values and
+
+    long-url: https://github.com/AllenCell/aics-segmentation
+
+    :param imgstack:
+    :param debug:
+    :param percentile:
+    :return:
+    """
+
+
+    m, s = norm.fit(imgstack.flat)
+    if debug:
+        print(f" stack mean intensity: {m}\t\tstandard deviation: {s}")
+
+    perc_intensity = np.percentile(imgstack, percentile)
+    pmin = imgstack.min()
+    pmax = imgstack.max()
+    if debug:
+        print(f"{percentile} percentile of the stack intensity is: {perc_intensity}")
+    up_ratio = 0
+    for up_i in np.arange(0.5, 1000, 0.5):
+        if m + s * up_i > perc_intensity:
+            if m + s * up_i > pmax:
+                if debug:
+                    print(f"suggested upper range is {up_i - 0.5}, which is {m + s * (up_i - 0.5)}")
+                up_ratio = up_i - 0.5
+            else:
+                if debug:
+                    print(f"suggested upper range is {up_i}, which is {m + s * up_i}")
+                up_ratio = up_i
+            break
+
+    low_ratio = 0
+    for low_i in np.arange(0.5, 1000, 0.5):
+        if m - s * low_i < pmin:
+            if debug:
+                print(f"suggested lower range is {low_i - 0.5}, which is {m - s * (low_i - 0.5)}")
+            low_ratio = low_i - 0.5
+            break
+
+    print(f"So, suggested parameter for normalization is [{low_ratio}, {up_ratio}]")
+    print(
+        "To further enhance the contrast: You may increase the first value "
+        + "(may loss some dim parts), or decrease the second value"
+        + "(may loss some texture in super bright regions)"
+    )
+    print(
+        "To slightly reduce the contrast: You may decrease the first value, or "
+        + "increase the second value"
+    )
+    return [low_ratio, up_ratio]
+
+
+def segmentsec61tacks(fpath, savepath, params, channel="sec61b"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
+    # [0.5, 5]  # [1, 2]  # [1.0, 9.0]
     ################################ code modified to return suggested params
 
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
@@ -33,32 +97,27 @@ def segmentsec61tacks(fpath, savepath, params):
     # cutoff = params["cutoff"]            #[0.15]  # [0.15]
     # f2params = [[[scale, cutoff]] for scale in scales for cutoff in cutoffs]]
     f2_param = params["f2params"]
-    minareas = [50]  # [10,15,20]
+    minarea = channelobj.getproteinname(channel)  # [10,15,20]
     bw = filament_2d_wrapper(structure_img_smooth.copy(), f2_param)
-    for minarea in minareas:
-        seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
-        seg = seg > 0
-        out = seg.astype(np.uint8)
-        out[out > 0] = 255
-        #         s = "sec61"
-        s = ""
-        for i in range(len(f2_param)):
-            for j in range(len(f2_param[i])):
-                s = "_".join([s, str(f2_param[i][j])])
-        name = fpath.split("/")[-1].split(".")[0]
-        tifffile.imwrite(f'{savepath}{name}{s}_minarea{minarea}.tiff', out, compress=6)
-        # writer.save(out)
+
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
+    seg = seg > 0
+    out = seg.astype(np.uint8)
+    out[out > 0] = 255
+    #         s = "sec61"
+    s = ""
+    for i in range(len(f2_param)):
+        for j in range(len(f2_param[i])):
+            s = "_".join([s, str(f2_param[i][j])])
+    name = fpath.split("/")[-1].split(".")[0]
+    tifffile.imwrite(f'{savepath}{name}{s}_minarea{minarea}.tiff', out, compress=6)
 
 
-def segmentlaminstacks(fpath, savepath, params):
+def segmentlaminstacks(fpath, savepath, params, channel="lmnb1"):
     #     padsize = 0
     #     fpath = filepath + file
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    print("getting lamin stack:", IMG.data.shape)
-    struct_img0 = IMG[0, 0, :, :, :].copy()
-    ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     gscale = (0.5 / 0.216666)
     gaussian_smoothing_sigma = [gscale, 1, 1]
     struct_img = intensity_normalization(struct_img0.copy(), scaling_param=intensity_scaling_param)
@@ -67,7 +126,8 @@ def segmentlaminstacks(fpath, savepath, params):
     #     structure_img = np.pad(struct_img, [(padsize, padsize), (0, 0), (0, 0)])
     ####################
     # smoothing with gaussian filter
-    structure_img_smooth = image_smoothing_gaussian_3d(structure_img.copy(), sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_3d(structure_img.copy(),
+                                                       sigma=gaussian_smoothing_sigma)
 
     ################################
     bw = None
@@ -92,7 +152,8 @@ def segmentlaminstacks(fpath, savepath, params):
     hole_min = 1  # 400
     area_min = hole_min
     bw_fill_mid_z = hole_filling(bw_mid_z, hole_min, hole_max)
-    seed = get_3dseed_from_mid_frame(np.logical_xor(bw_fill_mid_z, bw_dil_z), structure_img.shape, mid_z,
+    seed = get_3dseed_from_mid_frame(np.logical_xor(bw_fill_mid_z, bw_dil_z), structure_img.shape,
+                                     mid_z,
                                      hole_min)
     bw_filled = watershed(structure_img, seed.astype(int), watershed_line=True) > 0
     methodinfo = methodinfo + f"_hmax_{hole_max}_hmin{hole_min}{closingused}"
@@ -116,15 +177,12 @@ def segmentlaminstacks(fpath, savepath, params):
     # writer.save(out)
 
 
-def segmenttomstacks(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    print("getting TOM20 stack:", IMG.data.shape)
-    struct_img0 = IMG[0, 0, :, :, :].copy()
+def segmenttomstacks(fpath, savepath, params, channel="tom20"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
 
     ################################
     ## PARAMETERS for this step ##
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     gaussian_smoothing_sigma = 1
     ################################
     # intensity normalization
@@ -135,8 +193,8 @@ def segmenttomstacks(fpath, savepath, params):
     f2_param = params['f2params']
     bw = filament_2d_wrapper(structure_img_smooth, f2_param)
     ################################
-    minArea = 2
-    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    minarea = 2
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
     out = seg.astype(np.uint8)
@@ -153,17 +211,16 @@ def segmenttomstacks(fpath, savepath, params):
     # writer.save(out)
 
 
-def segmentlampstacks(fpath, savepath, params):  # DO NOT USE FILAMENTS FOR NOW
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    print("getting LAMP1 stack:", IMG.data.shape)
-    struct_img0 = IMG[0, 0, :, :, :].copy()
+def segmentlampstacks(fpath, savepath, params, channel="lamp1"):  # DO NOT USE FILAMENTS FOR NOW
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     gaussian_smoothing_sigma = 0.5
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
     # smoothing with 2d gaussian filter individual slices
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
     # s2_param = [[4, 0.12], [2, 0.09], [1, 0.02]]
     # f2_param = [[0.75, 0.15]]
     s2_param = params["s2params"]
@@ -176,10 +233,10 @@ def segmentlampstacks(fpath, savepath, params):  # DO NOT USE FILAMENTS FOR NOW
     ################################
     fill_2d = True
     fill_max_size = 400  # 1600
-    minArea = 3
+    minarea = 3
 
     bw_fill = hole_filling(bw, 0, fill_max_size, fill_2d)
-    seg = remove_small_objects(bw_fill > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw_fill > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -198,12 +255,10 @@ def segmentlampstacks(fpath, savepath, params):  # DO NOT USE FILAMENTS FOR NOW
     # writer.save(out)
 
 
-def segmentstgal(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    print("getting ST6GAL1 stack:", IMG.data.shape)
-    struct_img0 = IMG[0, 0, :, :, :].copy()
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+def segmentstgal(fpath, savepath, params, channel="st6gal1"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
 
     gaussian_smoothing_sigma = 1
     ################################
@@ -212,7 +267,8 @@ def segmentstgal(fpath, savepath, params):
 
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_3d(struct_img, sigma=gaussian_smoothing_sigma)
-    bw, object_for_debug = MO(structure_img_smooth, global_thresh_method='tri', object_minArea=300, return_object=True)
+    bw, object_for_debug = MO(structure_img_smooth, global_thresh_method='tri', object_minarea=300,
+                              return_object=True)
     thin_dist_preserve = params["topothin"]
     # thin_dist_preserve=1.6
     # thin_dist_preserve = 0.8
@@ -229,35 +285,34 @@ def segmentstgal(fpath, savepath, params):
     bw_combine = np.logical_or(bw_extra > 0, bw_thin)
     ################################
     ## PARAMETERS for this step ##
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
     s3p = ""
     for i in range(len(s3_param)):
         for j in range(len(s3_param[i])):
             s3p = "_".join([s3p, str(s3_param[i][j])])
-    seg = remove_small_objects(bw_combine > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw_combine > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
     name = fpath.split("/")[-1].split(".")[0]
 
-    tifffile.imwrite(f'{savepath}{name}_thin{thin_dist_preserve}_s3_{s3p}_minAr{minArea}.tif', out, compress=6)
+    tifffile.imwrite(f'{savepath}{name}_thin{thin_dist_preserve}_s3_{s3p}_minAr{minarea}.tif', out,
+                     compress=6)
     # writer.save(out)
 
 
-def segmentfbl(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
-    print("FOR DEBUG: ", IMG.shape, struct_img0.shape)
+def segmentfbl(fpath, savepath, params, channel="fbl"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     ## PARAMETERS for this step ##
     # intensity_scaling_param = [0, 32]
     gaussian_smoothing_sigma = 1.5
     ################################
 
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_3d(struct_img, sigma=gaussian_smoothing_sigma)
@@ -273,7 +328,7 @@ def segmentfbl(fpath, savepath, params):
 
     ################################
     ## PARAMETERS for this step ##
-    minArea = 5
+    minarea = 5
     ################################
     s2p = ""
     for i in range(len(s2_param)):
@@ -281,21 +336,19 @@ def segmentfbl(fpath, savepath, params):
             s2p = "_".join([s2p, str(s2_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    final_seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    final_seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     final_seg = final_seg > 0
     out = final_seg.astype(np.uint8)
     out[out > 0] = 255
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_minar{minarea}.tiff', compress=6)
 
 
-def segmenttub(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+def segmenttub(fpath, savepath, params, channel="tuba1b"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
-    print("FOR DEBUG: ", IMG.shape, struct_img0.shape)
 
     # smoothing with edge preserving smoothing
     structure_img_smooth = edge_preserving_smoothing_3d(struct_img)
@@ -308,10 +361,10 @@ def segmenttub(fpath, savepath, params):
 
     ################################
     ## PARAMETERS for this step ##
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    final_seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    final_seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
 
     final_seg = final_seg > 0
     out = final_seg.astype(np.uint8)
@@ -322,23 +375,23 @@ def segmenttub(fpath, savepath, params):
             f3p = "_".join([f3p, str(f3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentrab5(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentrab5(fpath, savepath, params, channel="rab5"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     ## PARAMETERS for this step ##
     # intensity_scaling_param = [3, 19]
     gaussian_smoothing_sigma = 0.5
     ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with 2d gaussian filter slice by slice
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
 
     ################################
     # s2_param = [[4, 0.12], [2, 0.09], [1, 0.02]]
@@ -352,12 +405,12 @@ def segmentrab5(fpath, savepath, params):
     ################################
     fill_2d = True
     fill_max_size = 400  # 1600
-    minArea = 4  # 15
+    minarea = channelobj.getproteinname(channel)  # 15
     ################################
 
     bw_fill = hole_filling(bw, 0, fill_max_size, fill_2d)
     # bw_fill = bw
-    final_seg = remove_small_objects(bw_fill > 0, min_size=minArea, connectivity=1, in_place=False)
+    final_seg = remove_small_objects(bw_fill > 0, min_size=minarea, connectivity=1, in_place=False)
 
     final_seg = final_seg > 0
     out = final_seg.astype(np.uint8)
@@ -368,17 +421,13 @@ def segmentrab5(fpath, savepath, params):
             s2p = "_".join([s2p, str(s2_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentmyh(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
-    print("FOR DEBUG: ", IMG.shape, struct_img0.shape)
-
+def segmentmyh(fpath, savepath, params, channel="myh10"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
     # intensity_scaling_param = [2.5, 17]
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     ################################
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
@@ -393,10 +442,10 @@ def segmentmyh(fpath, savepath, params):
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
 
     ################################
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    final_seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    final_seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
 
     final_seg = final_seg > 0
     out = final_seg.astype(np.uint8)
@@ -407,15 +456,14 @@ def segmentmyh(fpath, savepath, params):
             f3p = "_".join([f3p, str(f3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentpxn(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentpxn(fpath, savepath, params, channel="pxn"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
 
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     ################################
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
@@ -426,10 +474,10 @@ def segmentpxn(fpath, savepath, params):
 
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
     ################################
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -439,24 +487,24 @@ def segmentpxn(fpath, savepath, params):
             f3p = "_".join([f3p, str(f3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentdsp(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentdsp(fpath, savepath, params, channel="dsp"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     # intensity_scaling_param = [8000]
     gaussian_smoothing_sigma = 1
     ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
 
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with gaussian filter
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
     ################################
 
     s3_param = params['s3params']  # [[1, 0.04]]
@@ -465,18 +513,19 @@ def segmentdsp(fpath, savepath, params):
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    minArea = 4
-    Mask = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
-    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False), selem=ball(1))
+    minarea = channelobj.getproteinname(channel)
+    Mask = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
+    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
+                    selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
 
     ################################
     ## PARAMETERS for this step ##
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(seg > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
     out = seg.astype(np.uint8)
@@ -487,43 +536,37 @@ def segmentdsp(fpath, savepath, params):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentslc(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
-
+def segmentslc(fpath, savepath, params, channel="slc25a17"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
     ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
-
-    # intensity normalization
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
     ################################
-    ## PARAMETERS for this step ##
     s3_param = params['s3params']  # [[1, 0.04]]
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    minArea = 4
-    Mask = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    minarea = channelobj.getproteinname(channel)
+    Mask = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False), selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
 
     ################################
     ## PARAMETERS for this step ##
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(seg > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
     out = seg.astype(np.uint8)
@@ -534,17 +577,15 @@ def segmentslc(fpath, savepath, params):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentgja(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentgja(fpath, savepath, params, channel="gja1"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
-    ## PARAMETERS for this step ##
     # intensity_scaling_param = [1, 40]
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     gaussian_smoothing_sigma = 1
     ################################
 
@@ -552,20 +593,19 @@ def segmentgja(fpath, savepath, params):
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with 2d gaussian filter slice by slice
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
     ################################
     # s3_param = [[1, 0.031]]
     s3_param = params['s3params']
-
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
-
     ################################
-    minArea = 5
+    minarea = 5
     ################################
 
-    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -575,20 +615,19 @@ def segmentgja(fpath, savepath, params):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentctnnb(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentctnnb(fpath, savepath, params, channel="ctnnb1"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     ## PARAMETERS for this step ##
     # intensity_scaling_param =  [4, 27]
     gaussian_smoothing_sigma = 1
     ################################
 
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_3d(struct_img, sigma=gaussian_smoothing_sigma)
@@ -603,10 +642,10 @@ def segmentctnnb(fpath, savepath, params):
 
     ################################
     ## PARAMETERS for this step ##
-    minArea = 5
+    minarea = 5
     ################################
 
-    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -616,18 +655,17 @@ def segmentctnnb(fpath, savepath, params):
             s3p = "_".join([s3p, str(s2_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentactb(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentactb(fpath, savepath, params, channel="actb"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     ## PARAMETERS for this step ##
     # intensity_scaling_param = [2.5, 17]
 
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     ################################
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
@@ -641,10 +679,10 @@ def segmentactb(fpath, savepath, params):
 
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
     ################################
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -654,24 +692,20 @@ def segmentactb(fpath, savepath, params):
             s3p = "_".join([s3p, str(f3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentcetn2(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
-    ################################
+def segmentcetn2(fpath, savepath, params, channel="cetn2"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
-    ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
 
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with gaussian filter
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
-    ################################
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
     # s3_param = [[1, 0.04]]
     s3_param = params['s3params']
     ################################
@@ -679,17 +713,18 @@ def segmentcetn2(fpath, savepath, params):
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    minArea = 4
-    Mask = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
-    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False), selem=ball(1))
+    minarea = channelobj.getproteinname(channel)
+    Mask = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
+    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
+                    selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
 
     ################################
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(seg > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -699,24 +734,24 @@ def segmentcetn2(fpath, savepath, params):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)
 
 
-def segmentlc3b(fpath, savepath, params):
-    reader = AICSImage(fpath)
-    IMG = reader.data.astype(np.float32)
-    struct_img0 = IMG[0, 0, :, :, :]
+def segmentlc3b(fpath, savepath, params, channel="lc3b"):
+    struct_img0, channelobj = get_stack_channel(fpath, channel)
+
     ################################
     # intensity_scaling_param = [8000]
     gaussian_smoothing_sigma = 1
     ################################
-    intensity_scaling_param = suggest_normalization_param(struct_img0)
+    intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
 
     # intensity normalization
     struct_img = intensity_normalization(struct_img0, scaling_param=intensity_scaling_param)
 
     # smoothing with gaussian filter
-    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
+    structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
+                                                                   sigma=gaussian_smoothing_sigma)
     ################################
     # s3_param = [[1, 0.04]]
     s3_param = params['s3params']
@@ -725,17 +760,18 @@ def segmentlc3b(fpath, savepath, params):
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    minArea = 4
-    Mask = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
-    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False), selem=ball(1))
+    minarea = channelobj.getproteinname(channel)
+    Mask = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
+    Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
+                    selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
     ################################
     ## PARAMETERS for this step ##
-    minArea = 4
+    minarea = channelobj.getproteinname(channel)
     ################################
 
-    seg = remove_small_objects(seg > 0, min_size=minArea, connectivity=1, in_place=False)
+    seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
     out[out > 0] = 255
@@ -745,4 +781,4 @@ def segmentlc3b(fpath, savepath, params):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minArea}.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minar{minarea}.tiff', compress=6)

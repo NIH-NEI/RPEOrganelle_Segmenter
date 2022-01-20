@@ -13,12 +13,13 @@ class Stack():
     """
     Class for Stack object and its functions
     """
-    # alphabets = ["B", "C", "D", "E", "F", "G"]
-    alphabets = ["D"]
+    alphabets = ["B", "C", "D", "E", "F", "G"]
+    # alphabets = ["D"]
 
     def __init__(self, alphabet=None, channelname=None):
         if alphabet is None:
-            warnings.warn("if alphabet is None all acceptable alphabets will be tested. This may slow speed down significantly")
+            warnings.warn(
+                "if alphabet is None all acceptable alphabets will be tested. This may slow speed down significantly")
         self.reps = experimentalparams.generate_repinfo(_alphabets=alphabet)
         self.filepath = None
         self.savepath = None  # "../Results/2021/Sept24/actb/"
@@ -29,14 +30,31 @@ class Stack():
         self.channel = Channel.channel(self.channelname)
 
     def findmesfile(self, flist):
+        """
+        locate and return the first encountered .mes file in a list of files. This file contains information about
+        stacks that was missing from their filenames.
+
+        :param flist: list of files
+        :return: filename of .mes file; or None if no file found
+        """
         for f in flist:
             if f.__contains__(".mes"):
                 return f
+        print("No .mes file found")
+        return None
 
-    def getdirectorylist(self, filepath: types.PathLike = "../Results/data/prestack/ACTB/"):
+    def getdirectorylist(self, filepath: types.PathLike = ""):
         return os.listdir(filepath)
 
     def imagestostack(self, tiff_files, w, rep, foo):
+        """
+
+        :param tiff_files: list of
+        :param w:
+        :param rep:
+        :param foo:
+        :return:
+        """
         flag = 0
         ims = []
         for coo in self.channels:
@@ -60,6 +78,8 @@ class Stack():
     def filehasparameters(self, filename, w_in, r_in, f_in, c_in):
         """
         obtains the parameters from individual image files
+        TODO: finalize and test
+
         :param filename: 
         :param w_in: 
         :param r_in: 
@@ -72,12 +92,18 @@ class Stack():
             pass
 
     def returnstacksfromlist(self, filepath, savepath):
+        """
+
+        :param filepath: file path
+        :param savepath: save path
+        :return:
+        """
         self.filepath = filepath
         self.savepath = savepath
         self.dirs = os.listdir(filepath)
 
-        for dir in self.dirs:
-            dpath = os.path.join(self.filepath, dir)
+        for dirname in self.dirs:
+            dpath = os.path.join(self.filepath, dirname)
             if os.path.isdir(dpath):
                 files = [f for f in os.listdir(dpath) if os.path.isfile(os.path.join(dpath, f))]
                 mesfile = self.findmesfile(files)

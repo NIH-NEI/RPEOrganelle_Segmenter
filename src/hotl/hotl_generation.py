@@ -1,9 +1,11 @@
 import os
 from os import listdir
 from os.path import isfile, join
-
-from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, segmenttomstacks, segmentstgal, segmentfbl, segmentmyh, \
-    segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, segmentcetn2, segmentctnnb, segmentgja, segmentlc3b
+from src.stackio import Channel
+from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, \
+    segmenttomstacks, segmentstgal, segmentfbl, segmentmyh, \
+    segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, segmentcetn2, \
+    segmentctnnb, segmentgja, segmentlc3b
 
 maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
 savedirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Dec3/Stacks_seg/"
@@ -11,11 +13,18 @@ savedirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Dec3/Stacks_seg/"
 maindirs = listdir(maindirpath)
 savedirs = listdir(savedirpath)
 
+temp = Channel
 
 # assert maindirs == savedirs
 
 def getscaleparameters(mean_pixel_dimension=None, frac_deviation=0.5):
-    #     frac_deviation = 0.5 for phase 1, 0.25 for phase 2, 0.125 for phase 3# = 50%
+    """
+    By default frac_deviation = 0.5 for phase 1, 0.25 for phase 2, 0.125 for phase 3
+
+    :param mean_pixel_dimension: measurement of number of pixels (e.g. for width of an organelle)
+    :param frac_deviation: +/- fraction to generate new set. e.g. 0.5  gives mean*(1 +/- frac_deviation)
+    :return: list of 3 values with mean and mean*(1 +/- frac_deviation)
+    """
     scaleparam = mean_pixel_dimension / 3
     scaleparams = [scaleparam * (1 - frac_deviation), scaleparam, scaleparam * (1 + frac_deviation)]
     return scaleparams
@@ -32,7 +41,8 @@ def returnscalecutofflists(scales, cutoffs, paramname="f2params", secondparamval
     if isinstance(paramname, list):
         if len(paramname) == 2:
             print("list of params found")
-            paramslist = [{paramname[0]: [[scale, cutoff]], paramname[1]: spval} for scale in scales for cutoff in cutoffs for spval in secondparamvals]
+            paramslist = [{paramname[0]: [[scale, cutoff]], paramname[1]: spval} for scale in scales
+                          for cutoff in cutoffs for spval in secondparamvals]
     else:
         paramslist = [{paramname: [[scale, cutoff]]} for scale in scales for cutoff in cutoffs]
     return paramslist
@@ -199,13 +209,12 @@ for i, dirname in enumerate(maindirs):
         continue
     if phase > 1:
         cutoffparams = cutoffs[dirname]  # PHASE 2 onwards
-    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=0.25), cutoffparams, paramname=paramtypes[dirname], secondparamvals=spvals)
+    dictofparams[dirname] = returnscalecutofflists(
+        getscaleparameters(meanpixels[dirname], frac_deviation=0.25), cutoffparams,
+        paramname=paramtypes[dirname], secondparamvals=spvals)
 
 for i, dirname in enumerate(maindirs):
-    if i >= 0:
-        print(i, dirname)
-#         print(dictofparams[dirname])
-#         print(len(dictofparams[dirname]))
+    print(len(dictofparams[dirname]), i, dirname, dictofparams[dirname])
 
 for i, dirname in enumerate(maindirs):
     if dirname == "PXN" or dirname == "LaminB":
