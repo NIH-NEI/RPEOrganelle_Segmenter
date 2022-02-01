@@ -3,7 +3,7 @@ from os import listdir
 from os.path import isfile, join
 from src.stackio import Channel
 from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, \
-    segmenttomstacks, segmentstgal, segmentfbl, segmentmyh, \
+    segmenttom, segmentstgal, segmentfbl, segmentmyh, \
     segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, segmentcetn2, \
     segmentctnnb, segmentgja, segmentlc3b
 
@@ -73,7 +73,7 @@ usefunction = {
     "LaminB": segmentlaminstacks,
     "LAMP1": segmentlampstacks,
     "Sec61": segmentsec61tacks,
-    "TOM20": segmenttomstacks,
+    "TOM20": segmenttom,
     "ST6GAL1": segmentstgal,
     "FBL": segmentfbl,
     "myosin": segmentmyh,
@@ -113,7 +113,7 @@ usefunction = {
 ## PHASE 2
 meanpixels = {
     #     "LaminB": , # ignored for phase 2
-    "LAMP1": 1.75,
+    "LAMP1": 1.75, ##!!3.35
     "Sec61": 1.50,
     "TOM20": 2.75,
     "ST6GAL1": 3.75,
@@ -127,7 +127,7 @@ meanpixels = {
     "GJA1": 4.25,  # use membrane?
     "CTNNB": 1.625,  # use membrane
     "ACTB": 2.5,  # use observation
-    "CETN2": 2.25,
+    "CETN2": 2.25, #!!!6.75
     "LC3B": 4.5
 }
 
@@ -195,6 +195,8 @@ paramtypes = {
 dictofparams = {}
 phase = 2
 for i, dirname in enumerate(maindirs):
+    if i>=1:
+        continue
     if dirname == "PXN" or dirname == "LaminB":
         continue
     #     print(i, channels[dirname])
@@ -216,20 +218,20 @@ for i, dirname in enumerate(maindirs):
 for i, dirname in enumerate(maindirs):
     print(len(dictofparams[dirname]), i, dirname, dictofparams[dirname])
 
-for i, dirname in enumerate(maindirs):
-    if dirname == "PXN" or dirname == "LaminB":
-        continue
-    mainpath = join(maindirpath, dirname)
-    savepath = savedirpath + "/" + dirname + "/"
-    if not os.path.exists(savepath):
-        os.mkdir(savepath)
-    files = [f for f in listdir(mainpath) if isfile(join(mainpath, f))]
-    print(i, channels[dirname], files)
-    #     break
-    if i >= 0:
-        for f in files:
-            mainfilepath = mainpath + "/" + f
-            for params in dictofparams[dirname]:
-                #                 print(channels[dirname] in f)
-                print(params)
-                usefunction[dirname](mainfilepath, savepath, params)
+# for i, dirname in enumerate(maindirs):
+#     if dirname == "PXN" or dirname == "LaminB":
+#         continue
+#     mainpath = join(maindirpath, dirname)
+#     savepath = savedirpath + "/" + dirname + "/"
+#     if not os.path.exists(savepath):
+#         os.mkdir(savepath)
+#     files = [f for f in listdir(mainpath) if isfile(join(mainpath, f))]
+#     print(i, channels[dirname], files)
+#     #     break
+#     if i >= 0:
+#         for f in files:
+#             mainfilepath = mainpath + "/" + f
+#             for params in dictofparams[dirname]:
+#                 #                 print(channels[dirname] in f)
+#                 print(params)
+#                 usefunction[dirname](mainfilepath, savepath, params)

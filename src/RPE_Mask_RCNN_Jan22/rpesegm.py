@@ -10,15 +10,14 @@ if _swig_python_version_info < (2, 7, 0):
 
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import rpesegm as _rpesegm
+    from . import _rpesegm
 else:
     import _rpesegm
 
 try:
     import builtins as __builtin__
 except ImportError:
-    pass
-    # import __builtin__
+    import __builtin__
 
 def _swig_repr(self):
     try:

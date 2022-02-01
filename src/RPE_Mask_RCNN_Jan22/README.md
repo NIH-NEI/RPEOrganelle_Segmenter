@@ -14,14 +14,14 @@ Both training and prediction scripts accept response file instead of the command
 
 ## Requirements
 
-This software suite requires Python 3.6, TensorFlow 1.15 and Keras 2.1. To take advantage of a GPU it also needs CUDA 10.0 and CuDNN 7.6.5. The prediction script uses a native code extension, which is pre-compiled for Windows. On Linux system it can be easily built, but make sure the **swig** package is installed in the system. To (re)compile it under Windows, **swig** must be installed and accessible via system's **PATH**, and also a C++ compiler (such as MS Visual C++) is available. The Python dependencies are listed in [requirements.txt](requirements.txt).
+This software suite requires Python 3.6, TensorFlow 1.15 and Keras 2.1. To take advantage of a GPU it also needs CUDA 10.0 and CuDNN 7.6.5. The prediction script uses a native code extension, which is pre-compiled for Windows. On Linux system it can be easily built, but make sure the **swig** package is installed in the system. To (re)compile it under Windows, **swig** must be installed and accessible via system's **PATH**, and also a C++ compiler (such as MS Visual C++) is available. The Python dependencies are listed in [requirements.txt](./requirements.txt).
 
 Since this suite has a very specific set of requirements, it is generally a good idea to run it in an isolated environment, such as Miniconda VE, Docker container or locally installed/sourced CUDA/CuDNN and Python/dependencies. See below for step-by-step instructions in each case.
 
 
 ## Entry points
 
-[train.py](train.py) -- training script. The input is a training data directory exported by RPE Map Segmentation tool. The output is `mask_rcnn_dna_NNNN.h5` and `mask_rcnn_actin_NNNN.h5` files in the `model_weights` directory. Note that the output files are the last versions of the model weights, available only if the script finishes normally. If it is aborted, no new files are written into `model_weights`, but you can find the intermediate versions (at check points after each completed epoch) in the `logs` directory. If you want to continue training after an abnormal termination, you need to copy these files manually from `logs/XXXXXXXXX` to `model_weights`.
+[train.py](./train.py) -- training script. The input is a training data directory exported by RPE Map Segmentation tool. The output is `mask_rcnn_dna_NNNN.h5` and `mask_rcnn_actin_NNNN.h5` files in the `model_weights` directory. Note that the output files are the last versions of the model weights, available only if the script finishes normally. If it is aborted, no new files are written into `model_weights`, but you can find the intermediate versions (at check points after each completed epoch) in the `logs` directory. If you want to continue training after an abnormal termination, you need to copy these files manually from `logs/XXXXXXXXX` to `model_weights`.
 
 ```
 # Examples:
@@ -36,7 +36,7 @@ python train.py Actin C:\RPE_Training --weights coco --train-layers heads --epoc
 # The "logs" and "model_weights" directories are in the same directory as "train.py".
 ```
 
-[predict.py](predict_old.py) -- prediction script. The input is one or more `*.rpe.json` meta-files or directories containing these meta-files. The output is pairs of `*_RPE.csv`/`*_RPE.tif` files stored in the `Predicted` directory next to the corresponding `*.rpe.json`.
+[predict.py](./predict.py) -- prediction script. The input is one or more `*.rpe.json` meta-files or directories containing these meta-files. The output is pairs of `*_RPE.csv`/`*_RPE.tif` files stored in the `Predicted` directory next to the corresponding `*.rpe.json`.
 
 ```
 # Examples:
@@ -182,7 +182,7 @@ This command makes Python packages installed in `RPE_Mask_RCNN/packages` availab
 
 6. `sh build_swig.sh`
 
-This one builds the native extension. It is needed only for [predict.py](predict_old.py), but not for [train.py](train.py).
+This one builds the native extension. It is needed only for [predict.py](./predict.py), but not for [train.py](./train.py).
 
 ### Run scripts in an interactive session.
 

@@ -5,22 +5,19 @@
 # the SWIG interface file instead.
 
 from sys import version_info as _swig_python_version_info
-
 if _swig_python_version_info < (2, 7, 0):
     raise RuntimeError("Python 2.7 or later required")
 
 # Import the low-level C/C++ module
 if __package__ or "." in __name__:
-    from . import rpeutil as _rpeutil
+    from . import _rpeutil
 else:
     import _rpeutil
 
 try:
     import builtins as __builtin__
 except ImportError:
-    pass
-    # import __builtin__
-
+    import __builtin__
 
 def _swig_repr(self):
     try:
@@ -40,7 +37,6 @@ def _swig_setattr_nondynamic_instance_variable(set):
             set(self, name, value)
         else:
             raise AttributeError("You cannot add instance attributes to %s" % self)
-
     return set_instance_attr
 
 
@@ -50,16 +46,13 @@ def _swig_setattr_nondynamic_class_variable(set):
             set(cls, name, value)
         else:
             raise AttributeError("You cannot add class attributes to %s" % cls)
-
     return set_class_attr
 
 
 def _swig_add_metaclass(metaclass):
     """Class decorator for adding a metaclass to a SWIG wrapped class - a slimmed down version of six.add_metaclass"""
-
     def wrapper(cls):
         return metaclass(cls.__name__, cls.__bases__, cls.__dict__.copy())
-
     return wrapper
 
 
@@ -73,7 +66,6 @@ class SwigPyIterator(object):
 
     def __init__(self, *args, **kwargs):
         raise AttributeError("No constructor defined - class is abstract")
-
     __repr__ = _swig_repr
     __swig_destroy__ = _rpeutil.delete_SwigPyIterator
 
@@ -124,14 +116,11 @@ class SwigPyIterator(object):
 
     def __sub__(self, *args):
         return _rpeutil.SwigPyIterator___sub__(self, *args)
-
     def __iter__(self):
         return self
 
-
 # Register SwigPyIterator in _rpeutil:
 _rpeutil.SwigPyIterator_swigregister(SwigPyIterator)
-
 
 class vectori(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
@@ -139,7 +128,6 @@ class vectori(object):
 
     def iterator(self):
         return _rpeutil.vectori_iterator(self)
-
     def __iter__(self):
         return self.iterator()
 
@@ -235,13 +223,10 @@ class vectori(object):
 
     def capacity(self):
         return _rpeutil.vectori_capacity(self)
-
     __swig_destroy__ = _rpeutil.delete_vectori
-
 
 # Register vectori in _rpeutil:
 _rpeutil.vectori_swigregister(vectori)
-
 
 class vectord(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
@@ -249,7 +234,6 @@ class vectord(object):
 
     def iterator(self):
         return _rpeutil.vectord_iterator(self)
-
     def __iter__(self):
         return self.iterator()
 
@@ -345,9 +329,7 @@ class vectord(object):
 
     def capacity(self):
         return _rpeutil.vectord_capacity(self)
-
     __swig_destroy__ = _rpeutil.delete_vectord
-
 
 # Register vectord in _rpeutil:
 _rpeutil.vectord_swigregister(vectord)
@@ -356,71 +338,55 @@ _rpeutil.vectord_swigregister(vectord)
 def import_contours(w, h, in_csv):
     return _rpeutil.import_contours(w, h, in_csv)
 
-
 def import_reshape_contours(mask, rs_csv):
     return _rpeutil.import_reshape_contours(mask, rs_csv)
-
 
 def import_3d_contours(w, h, d, in_csv):
     return _rpeutil.import_3d_contours(w, h, d, in_csv)
 
-
 def cell_for_contour(w, h, d, z0, flat_cells, flat_cont):
     return _rpeutil.cell_for_contour(w, h, d, z0, flat_cells, flat_cont)
-
 
 def validate_contour(w, h, flat_slices, flat_cont):
     return _rpeutil.validate_contour(w, h, flat_slices, flat_cont)
 
-
 def simplify_contour(flat_cont):
     return _rpeutil.simplify_contour(flat_cont)
-
 
 def intersecting_slices(flat_slices, flat_cont):
     return _rpeutil.intersecting_slices(flat_slices, flat_cont)
 
-
 def cut_slices(w, h, flat_slices, flat_cont):
     return _rpeutil.cut_slices(w, h, flat_slices, flat_cont)
-
 
 def join_slices(w, h, flat_slices, flat_cont):
     return _rpeutil.join_slices(w, h, flat_slices, flat_cont)
 
-
 def export_3d_contours(mask3d, flat_cells, out_csv, validate, separate):
     return _rpeutil.export_3d_contours(mask3d, flat_cells, out_csv, validate, separate)
-
 
 def export_2d_contours(mask, flat_slices, out_csv):
     return _rpeutil.export_2d_contours(mask, flat_slices, out_csv)
 
-
 def cells_at_border(w, h, flat_cells):
     return _rpeutil.cells_at_border(w, h, flat_cells)
-
 
 def contours_at_border(w, h, flat_slices):
     return _rpeutil.contours_at_border(w, h, flat_slices)
 
-
 def mask_rcnn_to_particles(ptmask, rois, x_orig=0, y_orig=0):
     return _rpeutil.mask_rcnn_to_particles(ptmask, rois, x_orig, y_orig)
-
 
 def recombine_flat_particles(mask, flat_particles, scores, fix_borders):
     return _rpeutil.recombine_flat_particles(mask, flat_particles, scores, fix_borders)
 
-
 def mask2to3(mask):
     return _rpeutil.mask2to3(mask)
-
 
 def test_fix_borders_actin(mask):
     return _rpeutil.test_fix_borders_actin(mask)
 
-
 cvar = _rpeutil.cvar
 FIX_BORDERS_DNA = cvar.FIX_BORDERS_DNA
 FIX_BORDERS_ACTIN = cvar.FIX_BORDERS_ACTIN
+

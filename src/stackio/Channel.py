@@ -1,7 +1,6 @@
-from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, \
-    segmenttomstacks, segmentstgal, segmentfbl, segmentmyh, \
-    segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, segmentcetn2, \
-    segmentctnnb, segmentgja, segmentlc3b
+from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, segmenttom, \
+    segmentstgal, segmentfbl, segmentmyh, segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, \
+    segmentcetn2, segmentctnnb, segmentgja, segmentlc3b
 
 
 class channel():
@@ -91,7 +90,7 @@ class channel():
             "lmnb1": segmentlaminstacks,
             "lamp1": segmentlampstacks,
             "sec61b": segmentsec61tacks,
-            "tom20": segmenttomstacks,
+            "tom20": segmenttom,
             "st6gal1": segmentstgal,
             "fbl": segmentfbl,
             "myh10": segmentmyh,
@@ -112,7 +111,7 @@ class channel():
             "dna": 4,
             "actin": 4,
             "membrane": 4,
-            "tom20": 4,
+            "tom20": 2,
             "pxn": 4,
             "sec61b": 4,
             "tuba1b": 4,
@@ -136,19 +135,29 @@ class channel():
     def getallallchannelnames(self):
         return self.allchannelnames
 
-    def getminarea(self, key):
+    def getminarea(self, key=None):
+        if key is None:
+            key = self.channelname
         return self.minarea[key]
 
-    def getproteinname(self, key):
+    def getproteinname(self, key=None):
+        if key is None:
+            key = self.channelname
         return self.channelprotein[key]
 
-    def getorganellestructurename(self, key):
+    def getorganellestructurename(self, key=None):
+        if key is None:
+            key = self.channelname
         return self.organellestructure[key]
 
-    def validchannelname(self, key):
+    def validchannelname(self, key=None):
+        if key is None:
+            key = self.channelname
         return key.lower() in self.allchannelnames
 
-    def getrepalphabet(self, key):
+    def getrepalphabet(self, key=None):
+        if key is None:
+            key = self.channelname
         return self.rep_alphabet[key]
 
     def setdirectoryname(self, dname):
@@ -176,3 +185,7 @@ class channel():
             "cetn2": "CETN2",
             "lc3b": "LC3B"}
         self.directory = dname
+
+    def segmentchannel(self, filename, savepath, params):
+        # print(self.usefunction[self.channelname])
+        return self.usefunction[self.channelname](fpath=filename, savepath = savepath, params = params,channel =self.channelname)

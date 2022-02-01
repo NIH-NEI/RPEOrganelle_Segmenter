@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import random
+import datetime
 import shutil
 import numpy as np
 import skimage.draw
@@ -22,8 +23,8 @@ DEFAULT_DATA_DIR = ROOT_DIR
 # Import Mask RCNN
 if not ROOT_DIR in sys.path:
     sys.path.append(ROOT_DIR)  # To find local version of the library
-from src.RPE_Mask_RCNN_Jan22.mrcnn.config import Config
-from src.RPE_Mask_RCNN_Jan22.mrcnn import model as modellib, utils
+from mrcnn.config import Config
+from mrcnn import model as modellib, utils
 
 ############################################################
 #  Configurations

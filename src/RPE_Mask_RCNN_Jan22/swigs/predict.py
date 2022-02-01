@@ -225,7 +225,7 @@ def predict(argv):
 
     # print(args)
     # sys.exit(0)
-    from src.RPE_Mask_RCNN_Jan22 import predictors
+    from RPE_Mask_RCNN_Source_Latest import predictors
 
     if args.disable_gpu:
         args.gpu_count = 1

@@ -78,3 +78,26 @@ def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
 #         satisfied_conditions = False
 #     return satisfied_conditions
 #
+minarea = {
+            "dna": 4,
+            "actin": 4,
+            "membrane": 4,
+            "tom20": 2,
+            "pxn": 4,
+            "sec61b": 4,
+            "tuba1b": 4,
+            "lmnb1": 4,
+            "fbl": 5,
+            "actb": 4,
+            "dsp": 4,
+            "lamp1": 3,
+            "tjp1": 4,
+            "myh10": 4,
+            "st6gal1": 4,
+            "lc3b": 4,
+            "cetn2": 4,
+            "slc25a17": 4,
+            "rab5": 4,
+            "gja1": 5,
+            "ctnnb1": 5
+        }

@@ -392,9 +392,11 @@ def generatemeta(argv):
     if basedir is None:
         print('Please specify a directory containing -W?- subdirs with data files.')
         return -1
-    #
+
     jlist = metas_from_basedir(basedir, True)
     cnt = len(jlist)
+    print("BASEDIR: ", basedir, "JLIST : ", jlist)
+
     for o in jlist:
         basename = o.pop('basename')
         jpath = os.path.join(basedir, basename + '.rpe.json')

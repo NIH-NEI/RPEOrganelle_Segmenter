@@ -1,8 +1,8 @@
 __all__ = ('datadir', 'timing', 'UndoEntry', 'UndoStack', 'slice_area')
 
-import datetime
-import os
-import sys
+import sys, os, datetime
+import csv
+import enum
 from collections import namedtuple
 
 # Decorator for functions accessing data via relative paths
@@ -19,10 +19,7 @@ if hasattr(sys, '_MEIPASS'):
             finally:
                 os.chdir(cwd)
             return rc
-
         return wrapper
-
-
     #
     def timing(func):
         return func
@@ -31,36 +28,29 @@ else:
     # If distributed as single dir (or while in dev sandbox), do nothing.
     def datadir(func):
         return func
-
-
     #
     # Profiling decorator for non-single-exe env only
     def timing(func):
         def wrapper(*args, **kwarg):
             start_ts = datetime.datetime.now()
             rc = func(*args, **kwarg)
-            print(func.__name__ + '() done in:', str(datetime.datetime.now() - start_ts))
+            print(func.__name__+'() done in:', str(datetime.datetime.now()-start_ts))
             return rc
-
         return wrapper
 
 UndoEntry = namedtuple('UndoEntry', ['to_remove', 'to_add'])
-
 
 class UndoStack(object):
     def __init__(self, maxundo=100):
         self.maxundo = maxundo
         #
         self.buf = []
-
     #
     def clear(self):
         self.buf[:] = []
-
     #
     def is_empty(self):
         return len(self.buf) == 0
-
     #
     def push_undo(self, to_remove, to_add):
         if to_remove:
@@ -77,7 +67,6 @@ class UndoStack(object):
         if len(self.buf) > self.maxundo:
             self.buf[self.maxundo:] = []
         return True
-
     #
     def pop_undo(self):
         if len(self.buf) == 0:
@@ -85,7 +74,6 @@ class UndoStack(object):
         ent = self.buf.pop(0)
         return ent.to_remove, ent.to_add
     #
-
 
 def slice_area(asize, tsize, minovl=200):
     aw = int(asize[1])
@@ -98,19 +86,19 @@ def slice_area(asize, tsize, minovl=200):
         return res
     #
     nxt = aw // w + 1
-    xovl = (nxt * w - aw) // (nxt - 1)
+    xovl = (nxt*w - aw) // (nxt - 1)
     while xovl < minovl:
         nxt += 1
-        xovl = (nxt * w - aw) // (nxt - 1)
+        xovl = (nxt*w - aw) // (nxt - 1)
     #
     nyt = ah // h + 1
-    yovl = (nyt * h - ah) // (nyt - 1)
+    yovl = (nyt*h - ah) // (nyt - 1)
     while yovl < minovl:
         nyt += 1
-        yovl = (nyt * h - ah) // (nyt - 1)
+        yovl = (nyt*h - ah) // (nyt - 1)
     #
-    hw = w // 2
-    hh = h // 2
+    hw = w//2
+    hh = h//2
     xmax = aw - 1
     ymax = ah - 1
     #
@@ -118,14 +106,14 @@ def slice_area(asize, tsize, minovl=200):
     ystep = ah // nyt
     #
     for yc in range(nyt):
-        y0 = yc * ystep + ystep // 2 - hh
+        y0 = yc * ystep + ystep//2 - hh
         if y0 < 0: y0 = 0
         y1 = y0 + h - 1
         if y1 > ymax:
             y1 = ymax
             y0 = y1 - h + 1
         for xc in range(nxt):
-            x0 = xc * xstep + xstep // 2 - hw
+            x0 = xc * xstep + xstep//2 - hw
             if x0 < 0: x0 = 0
             x1 = x0 + w - 1
             if x1 > xmax:

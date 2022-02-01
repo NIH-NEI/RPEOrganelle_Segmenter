@@ -16,6 +16,7 @@ if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
 #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 # Root directory of the project
@@ -25,9 +26,9 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 if not ROOT_DIR in sys.path:
     sys.path.append(ROOT_DIR)  # To find local version of the library
 from src.RPE_Mask_RCNN_Jan22.mrcnn.config import Config
-from src.RPE_Mask_RCNN_Jan22.mrcnn import model as modellib
+from src.RPE_Mask_RCNN_Jan22.mrcnn import model as modellib, utils
 
-from src.RPE_Mask_RCNN_Jan22 import rpesegm, rpeutil
+from  src.RPE_Mask_RCNN_Jan22 import rpesegm, rpeutil
 from src.RPE_Mask_RCNN_Jan22.util import slice_area
 from src.RPE_Mask_RCNN_Jan22.rpefs import RpeTiffStack
 
@@ -74,7 +75,7 @@ def iter_stacks(data_dir, rpefile, chname, recurse=False):
                 fpath = os.path.join(fdir, fn)
                 if os.path.isdir(fpath):
                     if recurse:
-                        for tifstk in iter_stacks('', [fpath], chname, False):
+                        for tifstk in iter_stacks('.', [fpath], chname, False):
                             yield tifstk
                     continue;
                 if not fn.endswith('.rpe.json'):

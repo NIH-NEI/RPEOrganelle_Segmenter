@@ -3,7 +3,7 @@ __all__ = ('isPointInside', 'isIntersected', 'findContour', 'deleteMultiple', 'f
            'importContours', 'importReshapeContours',
            'contourBoundary', 'flattenContour', 'ContourManager2d', 'ContourManager3d',)
 
-import datetime
+import sys, os, datetime
 import math
 import pickle
 from collections import defaultdict
@@ -11,7 +11,7 @@ from collections import defaultdict
 import numpy as np
 from tifffile import imread, imwrite
 
-from src.RPE_Mask_RCNN_Jan22 import rpeutil
+import src.RPE_Mask_RCNN_Jan22.rpeutil
 from src.RPE_Mask_RCNN_Jan22.util import *
 
 # Winding number test for a point in a polygon
@@ -196,7 +196,7 @@ def flattenContour(cont):
         res.append(int(x+0.5))
         res.append(int(y+0.5))
     return res
-#
+#    
 
 def _unflatten_contours(flat):
     res = []
@@ -584,9 +584,9 @@ class aCell(object):
                 for x, y in cont:
                     res.append(int(x+0.5))
                     res.append(int(y+0.5))
-        return res
+        return res  
     #
-
+    
 class zContourList(object):
     def __init__(self, _mgr, _z):
         self._mgr = _mgr
@@ -653,7 +653,7 @@ class zContourList(object):
             self._ided.append((_id, _idx, cont))
             self._mgr.dirty = True
     #
-    def simplify(self, idx, simplifyContour=None):
+    def simplify(self, idx):
         _id, _idx, _cont = self._ided[idx]
         _cont[:] = simplifyContour(_cont)
     #
@@ -745,7 +745,7 @@ class zContourList(object):
         return set([idx for idx, (_id, _idx, _cont) in enumerate(self._ided) \
                     if _id == self._mgr.selected_id])
     #
-
+            
 
 class ContourManager3d(object):
     def __init__(self, w, h, nfr, cache_fpath):
@@ -870,7 +870,7 @@ class ContourManager3d(object):
             cont = res[0]
             if len(cont) < 5:
                 return None, None, None
-
+                
         if len(res) > 1 and len(res[1]) > 0:
             #print ('Cell ID to split:', best_id)
             old_cell = self.cells[best_id]
@@ -987,7 +987,7 @@ class ContourManager3d(object):
 
 if __name__ == '__main__':
 
-    from src.RPE_Mask_RCNN_Jan22.rpefs import RpeTiffStack
+    from rpefs import RpeTiffStack
     stack_path = r'C:\RPE_Data\Z01_suite\P1-W3-ZO1_D02_F006.rpe.json'
     tifstk = RpeTiffStack(stack_path)
     csv_file = tifstk.cache.getSegmName('DNA', ext='.csv')
@@ -997,7 +997,7 @@ if __name__ == '__main__':
     mgr = ContourManager3d(tifstk.width, tifstk.height, tifstk.n_frames, pkl_file)
     print ('#cells:', len(mgr.cells))
     print ('#contours:', mgr.countContours())
-
+    
     import json
     start_ts = datetime.datetime.now()
     annMap = mgr.getAnnotations()
