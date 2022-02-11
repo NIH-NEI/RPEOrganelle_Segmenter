@@ -8,8 +8,7 @@ from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, 
     segmentctnnb, segmentgja, segmentlc3b
 
 maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Dec3/Stacks_seg/"
-
+savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb4/stacks_seg_p3/"
 maindirs = listdir(maindirpath)
 savedirs = listdir(savedirpath)
 
@@ -37,7 +36,7 @@ def returnscalecutofflists(scales, cutoffs, paramname="f2params", secondparamval
     paramname = must be f2/s2/f3/s3+params.
     """
     paramlist = None
-    #     print("PNAME", paramname)
+    # print("parametar name", paramname)
     if isinstance(paramname, list):
         if len(paramname) == 2:
             print("list of params found")
@@ -103,74 +102,94 @@ usefunction = {
 #     "TUBA": 3,
 #     "DSP": 4.5,
 #     "SLC": 2.75,
-# #     "PXN": , needs checking by Davide
+# #     "PXN": , discarded - data quality
 #     "GJA1": 8.5, #use membrane?
 #     "CTNNB": 3.25,#use membrane
 #     "ACTB": 5, # use observation
 #     "CETN2": 4.5,
 #     "LC3B": 4.5
 # }
-## PHASE 2
-meanpixels = {
-    #     "LaminB": , # ignored for phase 2
-    "LAMP1": 1.75, ##!!3.35
-    "Sec61": 1.50,
-    "TOM20": 2.75,
-    "ST6GAL1": 3.75,
+# ## PHASE 2
+# meanpixels ={
+# #     "LaminB": , # ignored for phase 2
+#     "LAMP1": 3.5,
+#     "Sec61": 1.50,
+#     "TOM20": 2.75,
+#     "ST6GAL1": 3.75,
+#     "FBL": 7.5,
+#     "myosin": 2.5,
+#     "RAB5": 4.875,
+#     "TUBA": 4.5,
+#     "DSP": 2.25,
+#     "SLC": 2.75,
+#     #"PXN": , discarded - data quality
+#     "GJA1": 4.25, #use membrane?
+#     "CTNNB": 1.625, #use membrane
+#     "ACTB": 2.5, # use observation
+#     "CETN2": 6.75,
+#     "LC3B": 4.5
+# }
+## PHASE 3
+meanpixels ={
+#     "LaminB": , # ignored for phase 3
+    "LAMP1": 3.5,
+    "Sec61": 1.875,
+    "TOM20": 3.4375,
+    # "ST6GAL1": ignored for phase 3,
     "FBL": 7.5,
-    "myosin": 2.5,
-    "RAB5": 4.875,
+    "myosin": 3.125,
+    "RAB5": 6.09375,
     "TUBA": 4.5,
-    "DSP": 2.25,
+    "DSP": 1.6875,
     "SLC": 2.75,
-    #     "PXN": , needs checking by Davide
-    "GJA1": 4.25,  # use membrane?
-    "CTNNB": 1.625,  # use membrane
-    "ACTB": 2.5,  # use observation
-    "CETN2": 2.25, #!!!6.75
-    "LC3B": 4.5
+    #"PXN": , discarded - data quality
+    "GJA1": 4.25, #use membrane?
+    "CTNNB": 1.625, #use membrane
+    "ACTB": 1.875, # use observation
+    "CETN2": 5.0625,
+    "LC3B": 3.375
 }
 
-cutoffs = {
-    #     "LaminB": , # ignored for phase 2
-    "LAMP1": [0.03, 0.05, 0.07],
-    "Sec61": [0.05, 0.075, 0.1],
+#phase 2
+# cutoffs ={
+# #     "LaminB": , # ignored for phase 2
+#     "LAMP1": [0.03, 0.05, 0.07],
+#     "Sec61": [0.05, 0.075,0.1],
+#     "TOM20": [0.075, 0.1, 0.125],
+#     "ST6GAL1": [0.1, 0.15, 0.2],
+#     "FBL": [0.03, 0.05, 0.07],
+#     "myosin": [0.01,0.03,0.05],
+#     "RAB5": [0.05, 0.075, 0.1],
+#     "TUBA": [0.01, 0.03, 0.05],
+#     "DSP": [0.01, 0.03, 0.05],
+#     "SLC": [0.05, 0.075, 0.1],
+# #     "PXN": ,discarded - data quality
+#     "GJA1": [0.01, 0.03, 0.05],
+#     "CTNNB": [0.01,0.03,0.05],
+#     "ACTB":[0.01, 0.03,0.05] ,
+#     "CETN2": [0.05, 0.075, 0.1] ,
+#     "LC3B": [0.075, 0.1, 0.125]
+# }
+# phase3
+cutoffs ={
+#     "LaminB": , # ignored for phase 2
+    "LAMP1": [0.05, 0.07, 0.09],
+    "Sec61": [0.05, 0.075,0.1],
     "TOM20": [0.075, 0.1, 0.125],
-    "ST6GAL1": [0.1, 0.15, 0.2],
-    "FBL": [0.03, 0.05, 0.07],
+    # "ST6GAL1": [0.05, 0.1, 0.15], ignored phase 3
+    "FBL": [0.01, 0.03, 0.05],
     "myosin": [0.01, 0.03, 0.05],
-    "RAB5": [0.05, 0.075, 0.1],
+    "RAB5": [0.03, 0.05, 0.07],
     "TUBA": [0.01, 0.03, 0.05],
     "DSP": [0.01, 0.03, 0.05],
-    "SLC": [0.05, 0.075, 0.1],
-    #     "PXN": , needs checking by Davide
-    "GJA1": [0.01, 0.03, 0.05],  # use membrane?
-    "CTNNB": [0.01, 0.03, 0.05],  # use membrane
-    "ACTB": [0.01, 0.03, 0.05],  # use observation
-    "CETN2": [0.05, 0.075, 0.01],
+    "SLC": [0.03, 0.05, 0.07],
+#     "PXN": ,discarded - data quality
+    "GJA1": [0.01, 0.03, 0.05],
+    "CTNNB": [0.01, 0.03, 0.05],
+    "ACTB":[0.01, 0.03, 0.05] ,
+    "CETN2": [0.075, 0.1, 0.125] ,
     "LC3B": [0.075, 0.1, 0.125]
 }
-
-# f2_param1=[[0.1, 0.01], [0.2, 0.01], [0.4, 0.01], [0.8, 0.01], [1.6, 0.01]]
-# f2_param2=[[0.1, 0.01], [0.25, 0.01], [0.5, 0.01], [1, 0.01], [1.5, 0.01], [2, 0.2], [3,0.5]]
-# f2_param3=[[0.5, 0.01]]
-# laminf2params = [f2_param1,f2_param2,f2_param3]
-# closingstates = [ True, False]
-# laminparams = [{"f2params": laminf2, "useclosing":closingstate} for laminf2 in laminf2params for closingstate in closingstates]
-
-# s2_param1 = [[4, 0.12], [2, 0.09], [1, 0.02]]
-# s2_param2 = [[5,0.09], [2.5,0.07], [1,0.01]]
-# s2_param3 = [[2.5,0.09], [1.25,0.07], [0.5,0.01]]
-# lamps2s = [s2_param1, s2_param2, s2_param3]
-# lampf2scales = [0.5, 0.75, 1]
-# lampf2cutoffs = [0.15]
-# lampparams = [{"s2params":sparam,"f2params":[[scale,cutoff]]} for sparam in lamps2s for scale in lampf2scales for cutoff in lampf2cutoffs]
-
-
-# stgaltopo =[1.6, 0.8]
-# stgals3scale = [0.8, 1.2, 1.6]
-# stgals3cutoff = [0.02, 0.2]
-# stgalparams = [{"topothin":topo ,"s3params":[[scale,cutoff]]} for cutoff in stgals3cutoff for scale in stgals3scale for topo in stgaltopo]
 
 paramtypes = {
     "LaminB": ["f2params", "useclosing"],
@@ -193,12 +212,12 @@ paramtypes = {
 }
 
 dictofparams = {}
-phase = 2
+phase = 3
 for i, dirname in enumerate(maindirs):
-    if i>=1:
+    print(i, dirname, end="\t")
+    if dirname == "PXN" or dirname == "LaminB" or dirname =="ST6GAL1":
         continue
-    if dirname == "PXN" or dirname == "LaminB":
-        continue
+    print(i, dirname)
     #     print(i, channels[dirname])
     cstates = None
     spvals = None
@@ -207,31 +226,50 @@ for i, dirname in enumerate(maindirs):
     elif dirname == "ST6GAL1":
         #         spvals = [1.6, 0.8] # phase 1
         spvals = [0.5, 0.8, 1.1]  # phase 2
+        # spvals = [0.5, 0.8, 1.1]  # phase 2
     elif dirname == "PXN":
         continue
     if phase > 1:
         cutoffparams = cutoffs[dirname]  # PHASE 2 onwards
-    dictofparams[dirname] = returnscalecutofflists(
-        getscaleparameters(meanpixels[dirname], frac_deviation=0.25), cutoffparams,
+    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=0.25), cutoffparams,
         paramname=paramtypes[dirname], secondparamvals=spvals)
 
 for i, dirname in enumerate(maindirs):
-    print(len(dictofparams[dirname]), i, dirname, dictofparams[dirname])
+    if dirname == "PXN" or dirname == "LaminB" or dirname =="ST6GAL1":
+        continue
+    mainpath = join(maindirpath, dirname)
+    savepath = savedirpath + "/" + dirname + "/"
+    if not os.path.exists(savepath):
+        os.mkdir(savepath)
+    files = [f for f in listdir(mainpath) if isfile(join(mainpath, f))]
+    print(i, channels[dirname], files)
+    #     break
+    if i >= 0:
+        for f in files:
+            mainfilepath = mainpath + "/" + f
+            for params in dictofparams[dirname]:
+                #                 print(channels[dirname] in f)
+                # print(params)
+                usefunction[dirname](mainfilepath, savepath, params)
 
-# for i, dirname in enumerate(maindirs):
-#     if dirname == "PXN" or dirname == "LaminB":
-#         continue
-#     mainpath = join(maindirpath, dirname)
-#     savepath = savedirpath + "/" + dirname + "/"
-#     if not os.path.exists(savepath):
-#         os.mkdir(savepath)
-#     files = [f for f in listdir(mainpath) if isfile(join(mainpath, f))]
-#     print(i, channels[dirname], files)
-#     #     break
-#     if i >= 0:
-#         for f in files:
-#             mainfilepath = mainpath + "/" + f
-#             for params in dictofparams[dirname]:
-#                 #                 print(channels[dirname] in f)
-#                 print(params)
-#                 usefunction[dirname](mainfilepath, savepath, params)
+
+# f2_param1=[[0.1, 0.01], [0.2, 0.01], [0.4, 0.01], [0.8, 0.01], [1.6, 0.01]]
+# f2_param2=[[0.1, 0.01], [0.25, 0.01], [0.5, 0.01], [1, 0.01], [1.5, 0.01], [2, 0.2], [3,0.5]]
+# f2_param3=[[0.5, 0.01]]
+# laminf2params = [f2_param1,f2_param2,f2_param3]
+# closingstates = [ True, False]
+# laminparams = [{"f2params": laminf2, "useclosing":closingstate} for laminf2 in laminf2params for closingstate in closingstates]
+
+# s2_param1 = [[4, 0.12], [2, 0.09], [1, 0.02]]
+# s2_param2 = [[5,0.09], [2.5,0.07], [1,0.01]]
+# s2_param3 = [[2.5,0.09], [1.25,0.07], [0.5,0.01]]
+# lamps2s = [s2_param1, s2_param2, s2_param3]
+# lampf2scales = [0.5, 0.75, 1]
+# lampf2cutoffs = [0.15]
+# lampparams = [{"s2params":sparam,"f2params":[[scale,cutoff]]} for sparam in lamps2s for scale in lampf2scales for cutoff in lampf2cutoffs]
+
+
+# stgaltopo =[1.6, 0.8]
+# stgals3scale = [0.8, 1.2, 1.6]
+# stgals3cutoff = [0.02, 0.2]
+# stgalparams = [{"topothin":topo ,"s3params":[[scale,cutoff]]} for cutoff in stgals3cutoff for scale in stgals3scale for topo in stgaltopo]
