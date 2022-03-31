@@ -16,7 +16,7 @@ from skimage.feature import peak_local_max
 from skimage.measure import label
 from skimage.morphology import remove_small_objects, dilation, ball, closing, disk
 from skimage.segmentation import watershed
-from src.stackio import experimentalparams
+# from src.stackio.Channel import channel as ch
 
 # from src.stackio import Channel
 
@@ -24,6 +24,7 @@ def get_stack_channel(fpath, channelname, verbose=False):
     if verbose:
         print(f"getting {channelname} stack")
     reader = AICSImage(fpath)
+    print(reader.data.shape)
     IMG = reader.data.astype(np.float32)
     # channelobject = Channel.channel(channelname)
     return IMG[0, 0, :, :, :].copy()
@@ -79,7 +80,7 @@ def autoselect_normalization_parameters(imgstack, debug=False, percentile=99.99)
     return [low_ratio, up_ratio]
 
 
-def segmentsec61tacks(fpath, savepath, params, channel="sec61b"):
+def segmentsec61tacks(fpath, savepath, params, channel="sec61b", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -93,8 +94,15 @@ def segmentsec61tacks(fpath, savepath, params, channel="sec61b"):
     # scale = params["scale"]             # [0.75, 1]  # [0.75]
     # cutoff = params["cutoff"]            #[0.15]  # [0.15]
     # f2params = [[[scale, cutoff]] for scale in scales for cutoff in cutoffs]]
-    f2_param = params["f2params"]
-    minarea = experimentalparams.minarea[channel]  # [10,15,20]
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            f2_param = params["f2params"]
+        if isinstance(params, list):
+            f2_param = params
+    except Exception as e:
+        print(e)
+    # [10,15,20]
     bw = filament_2d_wrapper(structure_img_smooth.copy(), f2_param)
 
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -110,7 +118,7 @@ def segmentsec61tacks(fpath, savepath, params, channel="sec61b"):
     tifffile.imwrite(f'{savepath}{name}{s}_GFP.tiff', out, compress=6)
 
 
-def segmentlaminstacks(fpath, savepath, params, channel="lmnb1"):
+def segmentlaminstacks(fpath, savepath, params, channel="lmnb1", minarea = None):
     #     padsize = 0
     #     fpath = filepath + file
     struct_img0 = get_stack_channel(fpath, channel)
@@ -174,7 +182,7 @@ def segmentlaminstacks(fpath, savepath, params, channel="lmnb1"):
     # writer.save(out)
 
 
-def segmenttom(fpath, savepath, params, channel="tom20"):
+def segmenttom(fpath, savepath, params, channel="tom20", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -185,10 +193,17 @@ def segmenttom(fpath, savepath, params, channel="tom20"):
     structure_img_smooth = image_smoothing_gaussian_3d(struct_img, sigma=gaussian_smoothing_sigma)
     ################################
     # f2_param = [[1.2, 0.16]]
-    f2_param = params['f2params']
+    try:
+        if isinstance(params, dict):
+            f2_param = params["f2params"]
+        if isinstance(params, list):
+            f2_param = params
+    except Exception as e:
+        print(e)
     bw = filament_2d_wrapper(structure_img_smooth, f2_param)
     ################################
-    minarea = experimentalparams.minarea[channel]
+
+
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
@@ -210,7 +225,7 @@ def segmenttom(fpath, savepath, params, channel="tom20"):
     # writer.save(out)
 
 
-def segmentlampstacks(fpath, savepath, params, channel="lamp1"):  # DO NOT USE FILAMENTS FOR NOW
+def segmentlampstacks(fpath, savepath, params, channel="lamp1", minarea = None):  # DO NOT USE FILAMENTS FOR NOW
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -222,8 +237,14 @@ def segmentlampstacks(fpath, savepath, params, channel="lamp1"):  # DO NOT USE F
                                                                    sigma=gaussian_smoothing_sigma)
     # s2_param = [[4, 0.12], [2, 0.09], [1, 0.02]]
     # f2_param = [[0.75, 0.15]]
-    s2_param = params["s2params"]
-    # f2_param = params["f2params"]
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s2_param = params["s2params"]
+        if isinstance(params, list):
+            s2_param = params
+    except Exception as e:
+        print(e)
     ################################
     bw_spot = dot_2d_slice_by_slice_wrapper(structure_img_smooth, s2_param)
     # bw_filament = filament_2d_wrapper(structure_img_smooth, f2_param)
@@ -232,7 +253,8 @@ def segmentlampstacks(fpath, savepath, params, channel="lamp1"):  # DO NOT USE F
     ################################
     fill_2d = True
     fill_max_size = 400  # 1600
-    minarea = experimentalparams.minarea[channel]
+
+
 
     bw_fill = hole_filling(bw, 0, fill_max_size, fill_2d)
     seg = remove_small_objects(bw_fill > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -254,7 +276,7 @@ def segmentlampstacks(fpath, savepath, params, channel="lamp1"):  # DO NOT USE F
     # writer.save(out)
 
 
-def segmentstgal(fpath, savepath, params, channel="st6gal1"):
+def segmentstgal(fpath, savepath, params, channel="st6gal1", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -284,7 +306,8 @@ def segmentstgal(fpath, savepath, params, channel="st6gal1"):
     bw_combine = np.logical_or(bw_extra > 0, bw_thin)
     ################################
     ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
     s3p = ""
     for i in range(len(s3_param)):
@@ -302,12 +325,11 @@ def segmentstgal(fpath, savepath, params, channel="st6gal1"):
     # writer.save(out)
 
 
-def segmentfbl(fpath, savepath, params, channel="fbl"):
+def segmentfbl(fpath, savepath, params, channel="fbl", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
-    ## PARAMETERS for this step ##
-    # intensity_scaling_param = [0, 32]
+    #intensity_scaling_param = [0, 32]
     gaussian_smoothing_sigma = 1.5
     ################################
 
@@ -317,17 +339,22 @@ def segmentfbl(fpath, savepath, params, channel="fbl"):
     structure_img_smooth = image_smoothing_gaussian_3d(struct_img, sigma=gaussian_smoothing_sigma)
 
     ################################
-    ## PARAMETERS for this step ##
     # s2_param = [[1, 0.01]]
-    s2_param = params["s2params"]
-
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s2_param = params["s2params"]
+        if isinstance(params, list):
+            s2_param = params
+    except Exception as e:
+        print(e)
     ################################
 
     bw = dot_2d_slice_by_slice_wrapper(structure_img_smooth, s2_param)
 
     ################################
-    ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
     s2p = ""
     for i in range(len(s2_param)):
@@ -343,7 +370,7 @@ def segmentfbl(fpath, savepath, params, channel="fbl"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_GFP.tiff', compress=6)
 
 
-def segmenttub(fpath, savepath, params, channel="tuba1b"):
+def segmenttub(fpath, savepath, params, channel="tuba1b", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -360,7 +387,8 @@ def segmenttub(fpath, savepath, params, channel="tuba1b"):
 
     ################################
     ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     final_seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -377,7 +405,7 @@ def segmenttub(fpath, savepath, params, channel="tuba1b"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_GFP.tiff', compress=6)
 
 
-def segmentrab5(fpath, savepath, params, channel="rab5"):
+def segmentrab5(fpath, savepath, params, channel="rab5", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -394,7 +422,15 @@ def segmentrab5(fpath, savepath, params, channel="rab5"):
 
     ################################
     # s2_param = [[4, 0.12], [2, 0.09], [1, 0.02]]
-    s2_param = params['s2params']
+    # s2_param = params['s2params']
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s2_param = params["s2params"]
+        if isinstance(params, list):
+            s2_param = params
+    except Exception as e:
+        print(e)
     ################################
 
     bw = dot_2d_slice_by_slice_wrapper(structure_img_smooth, s2_param)
@@ -404,7 +440,8 @@ def segmentrab5(fpath, savepath, params, channel="rab5"):
     ################################
     fill_2d = True
     fill_max_size = 400  # 1600
-    minarea = experimentalparams.minarea[channel]  # 15
+
+  # 15
     ################################
 
     bw_fill = hole_filling(bw, 0, fill_max_size, fill_2d)
@@ -423,7 +460,7 @@ def segmentrab5(fpath, savepath, params, channel="rab5"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s2{s2p}_GFP.tiff', compress=6)
 
 
-def segmentmyh(fpath, savepath, params, channel="myh10"):
+def segmentmyh(fpath, savepath, params, channel="myh10", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
     # intensity_scaling_param = [2.5, 17]
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -441,7 +478,8 @@ def segmentmyh(fpath, savepath, params, channel="myh10"):
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
 
     ################################
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     final_seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -458,7 +496,7 @@ def segmentmyh(fpath, savepath, params, channel="myh10"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_GFP.tiff', compress=6)
 
 
-def segmentpxn(fpath, savepath, params, channel="pxn"):
+def segmentpxn(fpath, savepath, params, channel="pxn", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -472,7 +510,8 @@ def segmentpxn(fpath, savepath, params, channel="pxn"):
 
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
     ################################
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -488,7 +527,7 @@ def segmentpxn(fpath, savepath, params, channel="pxn"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_f3{f3p}_GFP.tiff', compress=6)
 
 
-def segmentdsp(fpath, savepath, params, channel="dsp"):
+def segmentdsp(fpath, savepath, params, channel="dsp", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -504,25 +543,30 @@ def segmentdsp(fpath, savepath, params, channel="dsp"):
     structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
                                                                    sigma=gaussian_smoothing_sigma)
     ################################
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s3_param = params['s3params']  # [[1, 0.04]]
+        if isinstance(params, list):
+            s3_param = params
+    except Exception as e:
+        print(e)
 
-    s3_param = params['s3params']  # [[1, 0.04]]
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
+    ################################
+
+
+    ################################
     # watershed
-    maskminarea = experimentalparams.minarea[channel]
+    maskminarea = minarea
     Mask = remove_small_objects(bw > 0, min_size=maskminarea, connectivity=1, in_place=False)
     Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
                     selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
-
-    ################################
-    ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
-    ################################
-
     seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
 
     seg = seg > 0
@@ -534,10 +578,10 @@ def segmentdsp(fpath, savepath, params, channel="dsp"):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minarea{minarea}_GFP.tiff', compress=6)
 
 
-def segmentslc(fpath, savepath, params, channel="slc25a17"):
+def segmentslc(fpath, savepath, params, channel="slc25a17", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
     ################################
@@ -547,21 +591,27 @@ def segmentslc(fpath, savepath, params, channel="slc25a17"):
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img, sigma=gaussian_smoothing_sigma)
     ################################
-    s3_param = params['s3params']  # [[1, 0.04]]
+    try:
+        if isinstance(params, dict):
+            s3_param = params['s3params']  # [[1, 0.04]]
+        if isinstance(params, list):
+            s3_param = params
+    except Exception as e:
+        print(e)
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    maskminarea = experimentalparams.minarea[channel]
+    maskminarea = minarea
     Mask = remove_small_objects(bw > 0, min_size=maskminarea, connectivity=1, in_place=False)
     Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False), selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
 
     ################################
-    ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -575,10 +625,10 @@ def segmentslc(fpath, savepath, params, channel="slc25a17"):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minarea{minarea}_GFP.tiff', compress=6)
 
 
-def segmentgja(fpath, savepath, params, channel="gja1"):
+def segmentgja(fpath, savepath, params, channel="gja1", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -595,10 +645,21 @@ def segmentgja(fpath, savepath, params, channel="gja1"):
                                                                    sigma=gaussian_smoothing_sigma)
     ################################
     # s3_param = [[1, 0.031]]
-    s3_param = params['s3params']
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s3_param = params['s3params']
+        if isinstance(params, list):
+            s3_param = params
+    except Exception as e:
+        print(e)
     ################################
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
-    minarea = experimentalparams.minarea[channel]
+
+    ################################
+
+
+    ################################
 
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
@@ -610,10 +671,10 @@ def segmentgja(fpath, savepath, params, channel="gja1"):
             s3p = "_".join([s3p, str(s3_param[i][j])])
     name = fpath.split("/")[-1].split(".")[0]
 
-    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
+    OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_minarea{minarea}_GFP.tiff', compress=6)
 
 
-def segmentctnnb(fpath, savepath, params, channel="ctnnb1"):
+def segmentctnnb(fpath, savepath, params, channel="ctnnb1", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -636,8 +697,8 @@ def segmentctnnb(fpath, savepath, params, channel="ctnnb1"):
     bw = dot_2d_slice_by_slice_wrapper(structure_img_smooth, s2_param)
 
     ################################
-    ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -653,7 +714,7 @@ def segmentctnnb(fpath, savepath, params, channel="ctnnb1"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
 
 
-def segmentactb(fpath, savepath, params, channel="actb"):
+def segmentactb(fpath, savepath, params, channel="actb", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -673,8 +734,10 @@ def segmentactb(fpath, savepath, params, channel="actb"):
     ################################
 
     bw = filament_3d_wrapper(structure_img_smooth, f3_param)
+
     ################################
-    minarea = experimentalparams.minarea[channel]
+
+
     ################################
 
     seg = remove_small_objects(bw > 0, min_size=minarea, connectivity=1, in_place=False)
@@ -690,7 +753,7 @@ def segmentactb(fpath, savepath, params, channel="actb"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
 
 
-def segmentcetn2(fpath, savepath, params, channel="cetn2"):
+def segmentcetn2(fpath, savepath, params, channel="cetn2", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -702,23 +765,30 @@ def segmentcetn2(fpath, savepath, params, channel="cetn2"):
     structure_img_smooth = image_smoothing_gaussian_slice_by_slice(struct_img,
                                                                    sigma=gaussian_smoothing_sigma)
     # s3_param = [[1, 0.04]]
-    s3_param = params['s3params']
+    print("params: ",params)
+    try:
+        if isinstance(params, dict):
+            s3_param = params['s3params']
+        if isinstance(params, list):
+            s3_param = params
+    except Exception as e:
+        print(e)
+
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
 
     # watershed
-    maskminarea = experimentalparams.minarea[channel]
+    ################################
+
+
+    ################################
+    maskminarea = minarea
     Mask = remove_small_objects(bw > 0, min_size=maskminarea, connectivity=1, in_place=False)
     Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
                     selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
-
-    ################################
-    minarea = experimentalparams.minarea[channel]
-    ################################
-
     seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
     out = seg.astype(np.uint8)
@@ -732,7 +802,7 @@ def segmentcetn2(fpath, savepath, params, channel="cetn2"):
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
 
 
-def segmentlc3b(fpath, savepath, params, channel="lc3b"):
+def segmentlc3b(fpath, savepath, params, channel="lc3b", minarea = None):
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -749,22 +819,26 @@ def segmentlc3b(fpath, savepath, params, channel="lc3b"):
                                                                    sigma=gaussian_smoothing_sigma)
     ################################
     # s3_param = [[1, 0.04]]
-    s3_param = params['s3params']
+    print("params: ", params)
+    try:
+        if isinstance(params, dict):
+            s3_param = params['s3params']
+        if isinstance(params, list):
+            s3_param = params
+    except Exception as e:
+        print(e)
     ################################
 
     bw = dot_3d_wrapper(structure_img_smooth, s3_param)
-
+    ################################
     # watershed
-    maskminarea = experimentalparams.minarea[channel]
+    maskminarea = minarea
     Mask = remove_small_objects(bw > 0, min_size=maskminarea, connectivity=1, in_place=False)
     Seed = dilation(peak_local_max(struct_img, labels=label(Mask), min_distance=2, indices=False),
                     selem=ball(1))
     Watershed_Map = -1 * distance_transform_edt(bw)
     seg = watershed(Watershed_Map, label(Seed), mask=Mask, watershed_line=True)
-    ################################
-    ## PARAMETERS for this step ##
-    minarea = experimentalparams.minarea[channel]
-    ################################
+
 
     seg = remove_small_objects(seg > 0, min_size=minarea, connectivity=1, in_place=False)
     seg = seg > 0
@@ -777,3 +851,6 @@ def segmentlc3b(fpath, savepath, params, channel="lc3b"):
     name = fpath.split("/")[-1].split(".")[0]
 
     OmeTiffWriter.save(data=out, uri=f'{savepath}{name}_s3{s3p}_GFP.tiff', compress=6)
+
+if __name__=="__main__":
+    pass

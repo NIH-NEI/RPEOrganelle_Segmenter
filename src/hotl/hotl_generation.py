@@ -8,7 +8,8 @@ from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, 
     segmentctnnb, segmentgja, segmentlc3b
 
 maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb4/stacks_seg_p3/"
+# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb4/stacks_seg_p3/"
+savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb25/stacks_seg_p3_fixed/"
 maindirs = listdir(maindirpath)
 savedirs = listdir(savedirpath)
 
@@ -231,7 +232,8 @@ for i, dirname in enumerate(maindirs):
         continue
     if phase > 1:
         cutoffparams = cutoffs[dirname]  # PHASE 2 onwards
-    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=0.25), cutoffparams,
+        # TODO 0.125
+    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=0.125), cutoffparams,
         paramname=paramtypes[dirname], secondparamvals=spvals)
 
 for i, dirname in enumerate(maindirs):

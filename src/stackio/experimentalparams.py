@@ -24,7 +24,14 @@ def generate_repinfo(_alphabets=None):
     if _alphabets is None:
         _alphabets = allalphabets
     else:
-        assert (_alphabets in allalphabets, f"Alphabets must be from {allalphabets}")
+        assert _alphabets in allalphabets, f"Alphabets must be from {allalphabets}"
+
+        if isinstance(_alphabets,str):
+            _alphabets=[_alphabets]
+        # elif isinstance(_alphabets,list):
+        #     assert len(_alphabets) == 1 ,"input must contain only 1 object"
+        else:
+            print("input alphabet must be a list or string")
     _repnums = ["02", "03", "04", "05", "06", "07", "08", "09", "10", "11"]
     reps = []
     for a in _alphabets:
@@ -46,12 +53,23 @@ def generate_repinfo(_alphabets=None):
 #     r_ = int(r[1:]) - 2
 #     return w, r, w_, r_, basestringdna
 
-def getwrprestack(fname):  # TODO: test, implement remaining part
-    s1, r, _ = fname.split("_")
-    w = s1.split("-")[1]
-    w_ = WS.index(w)
-    r_ = int(r[1:]) - 2
-    return w, r, w_, r_, fname
+def get_rfcw(fname,checkw=False):
+    split = fname.split("_")
+    if len(split)==3:
+        s1, r, fc = split
+    elif len(split)==4:
+        s1, s2, r, fc = split
+    c = fc.split(".tif")[0][-3:]
+    f = fc.split(".tif")[0][-16:-12]
+    # print("f,c",f,c)
+    # raise Exception
+    # print(fname.split("_"))
+    # r_ = int(r[1:]) - 2
+    if checkw:
+        w = s1.split("-")[1]
+        # w_ = WS.index(w)
+        return r,f ,c, w
+    return r,f,c
 
 
 def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
@@ -60,7 +78,7 @@ def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
     :param r: replicate id ( converted to 0-9 range)
     :return: treatment id
     """
-    assert (r < 10, "error")
+    assert r < 10, "error"
     treatment = None
     if r < 5:
         treatment = 0
@@ -78,26 +96,4 @@ def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
 #         satisfied_conditions = False
 #     return satisfied_conditions
 #
-minarea = {
-            "dna": 4,
-            "actin": 4,
-            "membrane": 4,
-            "tom20": 2,
-            "pxn": 4,
-            "sec61b": 4,
-            "tuba1b": 4,
-            "lmnb1": 4,
-            "fbl": 5,
-            "actb": 4,
-            "dsp": 4,
-            "lamp1": 3,
-            "tjp1": 4,
-            "myh10": 4,
-            "st6gal1": 4,
-            "lc3b": 4,
-            "cetn2": 4,
-            "slc25a17": 4,
-            "rab5": 4,
-            "gja1": 5,
-            "ctnnb1": 5
-        }
+

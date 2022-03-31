@@ -14,6 +14,7 @@ class Stack():
     Class for Stack object and its functions
     """
     alphabets = ["B", "C", "D", "E", "F", "G"]
+
     # alphabets = ["D"]
 
     def __init__(self, alphabet=None, channelname=None):
@@ -46,11 +47,10 @@ class Stack():
     def getdirectorylist(self, filepath: types.PathLike = ""):
         return os.listdir(filepath)
 
-    def imagestostack(self, tiff_files, w, rep, foo):
+    def imagestostack(self, tiff_files, dpath, rep, foo):
         """
 
         :param tiff_files: list of
-        :param w:
         :param rep:
         :param foo:
         :return:
@@ -61,21 +61,22 @@ class Stack():
             # selectedfilelist = self.returnfilescontaining(listofallfiles=tiff_files, w, rep, foo, coo)
             cims = []
             for f in tiff_files:
-                if self.filehasparameters(f, w, rep, foo, coo):
-                    if w in f and rep in f and foo in f and coo in f:
-                        flag = 1
-                        # print(w, rep, foo, coo, f)
-                        try:
-                            cim = tifffile.imread(os.path.join(self.dpath, f))
-                            cims.append(cim)
-                        except Exception as e:
-                            print("could not read", f, flush=True)
+                if self.filehasparameters(f, rep, foo, coo):
+                    # print(rep, foo, coo, f)
+
+                    # if rep in f and foo in f and coo in f:
+                    flag = 1
+                    try:
+                        cim = tifffile.imread(os.path.join(dpath, f))
+                        cims.append(cim)
+                    except Exception as e:
+                        print("could not read", f, flush=True)
             cimages = np.asarray(cims)
             ims.append(cimages)
             del cims
         return flag, ims
 
-    def filehasparameters(self, filename, w_in, r_in, f_in, c_in):
+    def filehasparameters(self, filename, r_in, f_in, c_in):
         """
         obtains the parameters from individual image files
         TODO: finalize and test
@@ -87,9 +88,20 @@ class Stack():
         :param c_in: 
         :return: 
         """
-        w, r, w_, r_, filename = experimentalparams.getwrprestack(filename)
-        if (w == w_in) and (r == r_in):  # and (f == f_in) and (c == c_in):
-            pass
+        # only works for properly named files
+        if not filename.endswith("tif"):
+            return False
+        if filename.__contains__("CH") or filename.__contains__("CMOS"):
+            return False
+        try:
+            r, f, c = experimentalparams.get_rfcw(filename)
+        except:
+            print("file naming issue")
+
+        if (r == r_in) and (f == f_in) and (c == c_in):
+            return True
+        else:
+            return False
 
     def returnstacksfromlist(self, filepath, savepath):
         """
@@ -102,7 +114,7 @@ class Stack():
         self.savepath = savepath
         self.dirs = os.listdir(filepath)
 
-        for dirname in self.dirs:
+        for dirname in self.dirs:  # dirname + mesweekid for week
             dpath = os.path.join(self.filepath, dirname)
             if os.path.isdir(dpath):
                 files = [f for f in os.listdir(dpath) if os.path.isfile(os.path.join(dpath, f))]
@@ -115,40 +127,47 @@ class Stack():
                 print(fsavepath, mesweekid, len(files))
                 tiff_files = [f for f in files if f.__contains__(".tif")]
                 tiff_files = sorted(tiff_files)
+                # w = mesweekid[1]
                 if not os.path.exists(fsavepath):
                     os.mkdir(fsavepath)
-                # for w in experimentalparams.WS:
-                w = mesweekid[1]
                 # done = self.getcompletedfilelist()
                 # if w in done:
                 #     continue
+                # for w in experimentalparams.WS:
                 for rep in self.reps:
                     for foo in self.Fs:
                         omefilename = "_".join([mesweekid, rep, foo + ".ome.tif"])
                         if os.path.exists(os.path.join(fsavepath, omefilename)):
                             print(os.path.join(fsavepath, omefilename) + " already done")
+
                         else:
                             try:
                                 start_ts = datetime.datetime.now()
-                                for coo in self.channels:
-                                    flag, ims = self.imagestostack(tiff_files, w, rep, foo, coo)
-                                    if flag:
-                                        images = np.asarray(ims)
-                                        expanded = np.expand_dims(images, 0)
-                                        # print(expanded.shape) # TCZYX
+                                flag, ims = self.imagestostack(tiff_files, dpath, rep, foo)
+                                if flag:
+                                    images = np.asarray(ims)
+                                    expanded = np.expand_dims(images, 0)
+                                    # print(expanded.shape) # TCZYX
 
-                                        # expanded = expanded.transpose(0, 2, 1, 3, 4)
-                                        # print(images.shape, expanded.shape, cimages.shape, expanded.transpose(0, 2, 1, 3, 4).shape)
-                                        # print(expanded.shape) # TCZYX
-                                        # raise Exception
+                                    # expanded = expanded.transpose(0, 2, 1, 3, 4)
+                                    # print(images.shape, expanded.shape, cimages.shape, expanded.transpose(0, 2, 1, 3, 4).shape)
+                                    # print(expanded.shape) # TCZYX
+                                    # raise Exception
 
-                                        OmeTiffWriter.save(expanded, os.path.join(fsavepath, omefilename))
-                                        # writer = omeTifWriter.OmeTifWriter(os.path.join(fsavepath, omefilename),
-                                        #                                    overwrite_file=False)
-                                        # writer.save(expanded)
-                                        print("saved file: ", omefilename, expanded.shape)
-                                        end_ts = datetime.datetime.now()
-                                        print("Calculated in ", end_ts - start_ts, "@ :", end_ts)
-                                        # raise Exception
+                                    OmeTiffWriter.save(expanded, os.path.join(fsavepath, omefilename), compress=6)
+                                    # writer = omeTifWriter.OmeTifWriter(os.path.join(fsavepath, omefilename),
+                                    #                                    overwrite_file=False)
+                                    # writer.save(expanded)
+                                    print("saved file: ", omefilename, expanded.shape)
+                                    end_ts = datetime.datetime.now()
+                                    print("Calculated in ", end_ts - start_ts, "@ :", end_ts)
+                                    # raise Exception
                             except Exception as e:
                                 print(e)
+
+
+if __name__ == "__main__":
+    s = Stack(alphabet="G", channelname="lc3b")
+    filepath = "E:/Pushkar_backup/Results/data/prestack/FBL"
+    savepath = "C:/Users/satheps/PycharmProjects/Results/2021/Sept3/FBLstacks/"
+    s.returnstacksfromlist(filepath=filepath, savepath=savepath)
