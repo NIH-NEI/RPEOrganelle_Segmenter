@@ -17,7 +17,7 @@ setstackshape = (T, C, Z, X, Y)
 def generate_repinfo(_alphabets=None):
     """
     Input one of the alphabets based on specific file information
-    :param _alphabets:
+    :param _alphabets: alphabets that occur in the _ middle _ part of filename
     :return: list of replicate ids
     """
     allalphabets = ["B", "C", "D", "E", "F", "G"]
@@ -26,8 +26,8 @@ def generate_repinfo(_alphabets=None):
     else:
         assert _alphabets in allalphabets, f"Alphabets must be from {allalphabets}"
 
-        if isinstance(_alphabets,str):
-            _alphabets=[_alphabets]
+        if isinstance(_alphabets, str):
+            _alphabets = [_alphabets]
         # elif isinstance(_alphabets,list):
         #     assert len(_alphabets) == 1 ,"input must contain only 1 object"
         else:
@@ -53,11 +53,17 @@ def generate_repinfo(_alphabets=None):
 #     r_ = int(r[1:]) - 2
 #     return w, r, w_, r_, basestringdna
 
-def get_rfcw(fname,checkw=False):
+def get_rfcw(fname, checkw=False):
+    """
+
+    :param fname: file name
+    :param checkw: check for week number also in name
+    :return: replicate, fov no, wellplate no., (week no) : r,f,c,(w)
+    """
     split = fname.split("_")
-    if len(split)==3:
+    if len(split) == 3:
         s1, r, fc = split
-    elif len(split)==4:
+    elif len(split) == 4:
         s1, s2, r, fc = split
     c = fc.split(".tif")[0][-3:]
     f = fc.split(".tif")[0][-16:-12]
@@ -68,14 +74,14 @@ def get_rfcw(fname,checkw=False):
     if checkw:
         w = s1.split("-")[1]
         # w_ = WS.index(w)
-        return r,f ,c, w
-    return r,f,c
+        return r, f, c, w
+    return r, f, c
 
 
-def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
+def findtreatment(r):
     """
     Returns the type of treatement based on replicate id
-    :param r: replicate id ( converted to 0-9 range)
+    :param r: replicate id (IMP: must be converted to 0-9 range)
     :return: treatment id
     """
     assert r < 10, "error"
@@ -85,15 +91,4 @@ def findtreatment(r):  # TODO: check with getwr_3channel for inconsistencies
     else:
         treatment = 1
     return treatment
-
-#
-# def checkcellconditions(cellvals):
-#     [centroid, vol, xspan, yspan, zspan, maxferet, minferet] = cellvals
-#     satisfied_conditions = True
-#     if (zspan < 1) or (xspan < 2) or (yspan < 2):
-#         satisfied_conditions = False
-#     if vol >= 100000 or vol <= 50:  # 50 = 2130,in cu micron
-#         satisfied_conditions = False
-#     return satisfied_conditions
-#
 

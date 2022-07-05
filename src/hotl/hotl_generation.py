@@ -1,21 +1,21 @@
 import os
 from os import listdir
 from os.path import isfile, join
-from src.stackio import Channel
-from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, \
-    segmenttom, segmentstgal, segmentfbl, segmentmyh, \
-    segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, segmentcetn2, \
-    segmentctnnb, segmentgja, segmentlc3b
 
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb4/stacks_seg_p3/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Feb25/stacks_seg_p3_fixed/"
+from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, \
+    segmenttom, segmentstgal, segmentfbl, segmentmyh, segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, \
+    segmentactb, segmentcetn2, segmentctnnb, segmentgja, segmentlc3b, segmenttjp
+from src.stackio import Channel
+
+# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
+maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/Stacks_hotl/"
+savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/June10/stgaltest/"
 maindirs = listdir(maindirpath)
 savedirs = listdir(savedirpath)
 
 temp = Channel
 
-# assert maindirs == savedirs
+phase = 4
 
 def getscaleparameters(mean_pixel_dimension=None, frac_deviation=0.5):
     """
@@ -40,7 +40,7 @@ def returnscalecutofflists(scales, cutoffs, paramname="f2params", secondparamval
     # print("parametar name", paramname)
     if isinstance(paramname, list):
         if len(paramname) == 2:
-            print("list of params found")
+            print(f"list of params found: {scales}, {cutoffs}, {secondparamvals}")
             paramslist = [{paramname[0]: [[scale, cutoff]], paramname[1]: spval} for scale in scales
                           for cutoff in cutoffs for spval in secondparamvals]
     else:
@@ -66,7 +66,8 @@ channels = {
     "CTNNB": "CTNNB",
     "ACTB": "ACTB",
     "CETN2": "CETN2",
-    "LC3B": "LC3B"
+    "LC3B": "LC3B",
+    "ZO1": "TJP1"
 }
 
 usefunction = {
@@ -86,112 +87,174 @@ usefunction = {
     "CTNNB": segmentctnnb,
     "ACTB": segmentactb,
     "CETN2": segmentcetn2,
-    "LC3B": segmentlc3b
+    "LC3B": segmentlc3b,
+    "ZO1": segmenttjp
 }
 
-## PHASE 1
-# cutoffparams = [0.01, 0.05, 0.1] ## PHASE 1
-# meanpixels ={
-#     "LaminB": 3,
-#     "LAMP1": 3.5,
-#     "Sec61": 3,
-#     "TOM20": 2.75,
-#     "ST6GAL1": 3.75,
-#     "FBL": 7.5,
-#     "myosin": 5,
-#     "RAB5": 3.25,
-#     "TUBA": 3,
-#     "DSP": 4.5,
-#     "SLC": 2.75,
-# #     "PXN": , discarded - data quality
-#     "GJA1": 8.5, #use membrane?
-#     "CTNNB": 3.25,#use membrane
-#     "ACTB": 5, # use observation
-#     "CETN2": 4.5,
-#     "LC3B": 4.5
-# }
-# ## PHASE 2
-# meanpixels ={
-# #     "LaminB": , # ignored for phase 2
-#     "LAMP1": 3.5,
-#     "Sec61": 1.50,
-#     "TOM20": 2.75,
-#     "ST6GAL1": 3.75,
-#     "FBL": 7.5,
-#     "myosin": 2.5,
-#     "RAB5": 4.875,
-#     "TUBA": 4.5,
-#     "DSP": 2.25,
-#     "SLC": 2.75,
-#     #"PXN": , discarded - data quality
-#     "GJA1": 4.25, #use membrane?
-#     "CTNNB": 1.625, #use membrane
-#     "ACTB": 2.5, # use observation
-#     "CETN2": 6.75,
-#     "LC3B": 4.5
-# }
-## PHASE 3
-meanpixels ={
-#     "LaminB": , # ignored for phase 3
-    "LAMP1": 3.5,
-    "Sec61": 1.875,
-    "TOM20": 3.4375,
-    # "ST6GAL1": ignored for phase 3,
-    "FBL": 7.5,
-    "myosin": 3.125,
-    "RAB5": 6.09375,
-    "TUBA": 4.5,
-    "DSP": 1.6875,
-    "SLC": 2.75,
-    #"PXN": , discarded - data quality
-    "GJA1": 4.25, #use membrane?
-    "CTNNB": 1.625, #use membrane
-    "ACTB": 1.875, # use observation
-    "CETN2": 5.0625,
-    "LC3B": 3.375
-}
+fracdev = 0.5 / (2 ** (phase - 1))  # for generation of values for each phase
 
-#phase 2
-# cutoffs ={
-# #     "LaminB": , # ignored for phase 2
-#     "LAMP1": [0.03, 0.05, 0.07],
-#     "Sec61": [0.05, 0.075,0.1],
-#     "TOM20": [0.075, 0.1, 0.125],
-#     "ST6GAL1": [0.1, 0.15, 0.2],
-#     "FBL": [0.03, 0.05, 0.07],
-#     "myosin": [0.01,0.03,0.05],
-#     "RAB5": [0.05, 0.075, 0.1],
-#     "TUBA": [0.01, 0.03, 0.05],
-#     "DSP": [0.01, 0.03, 0.05],
-#     "SLC": [0.05, 0.075, 0.1],
-# #     "PXN": ,discarded - data quality
-#     "GJA1": [0.01, 0.03, 0.05],
-#     "CTNNB": [0.01,0.03,0.05],
-#     "ACTB":[0.01, 0.03,0.05] ,
-#     "CETN2": [0.05, 0.075, 0.1] ,
-#     "LC3B": [0.075, 0.1, 0.125]
-# }
-# phase3
-cutoffs ={
-#     "LaminB": , # ignored for phase 2
-    "LAMP1": [0.05, 0.07, 0.09],
-    "Sec61": [0.05, 0.075,0.1],
-    "TOM20": [0.075, 0.1, 0.125],
-    # "ST6GAL1": [0.05, 0.1, 0.15], ignored phase 3
-    "FBL": [0.01, 0.03, 0.05],
-    "myosin": [0.01, 0.03, 0.05],
-    "RAB5": [0.03, 0.05, 0.07],
-    "TUBA": [0.01, 0.03, 0.05],
-    "DSP": [0.01, 0.03, 0.05],
-    "SLC": [0.03, 0.05, 0.07],
-#     "PXN": ,discarded - data quality
-    "GJA1": [0.01, 0.03, 0.05],
-    "CTNNB": [0.01, 0.03, 0.05],
-    "ACTB":[0.01, 0.03, 0.05] ,
-    "CETN2": [0.075, 0.1, 0.125] ,
-    "LC3B": [0.075, 0.1, 0.125]
-}
+# PHASE 1
+if phase == 1:
+    cutoffparams = [0.01, 0.05, 0.1]  ## PHASE 1
+    meanpixels = {
+        "LaminB": 3,
+        "LAMP1": 3.5,
+        "Sec61": 3,
+        "TOM20": 2.75,
+        "ST6GAL1": 3.75,
+        "FBL": 7.5,
+        "myosin": 5,
+        "RAB5": 3.25,
+        "TUBA": 3,
+        "DSP": 4.5,
+        "SLC": 2.75,
+        #     "PXN": , discarded - data quality
+        "GJA1": 8.5,  # use membrane?
+        "CTNNB": 3.25,  # use membrane
+        "ACTB": 5,  # use observation
+        "CETN2": 4.5,
+        "LC3B": 4.5,
+        "ZO1": 3
+    }
+    stgal_topothin_pvals = [1, 2, 3]
+elif phase == 2:
+    ## PHASE 2
+    meanpixels = {
+        #     "LaminB": , # ignored for phase 2
+        "LAMP1": 3.5,
+        "Sec61": 1.50,
+        "TOM20": 2.75,
+        "ST6GAL1": 5.625,
+        "FBL": 7.5,
+        "myosin": 2.5,
+        "RAB5": 4.875,
+        "TUBA": 4.5,
+        "DSP": 2.25,
+        "SLC": 2.75,
+        # "PXN": , discarded - data quality
+        "GJA1": 4.25,  # use membrane?
+        "CTNNB": 1.625,  # use membrane
+        "ACTB": 2.5,  # use observation
+        "CETN2": 6.75,
+        "LC3B": 4.5,
+        "ZO1": 1.5
 
+    }
+
+    ## PHASE 2
+    cutoffs = {
+        #     "LaminB": , # ignored for phase 2
+        "LAMP1": [0.03, 0.05, 0.07],
+        "Sec61": [0.05, 0.075, 0.1],
+        "TOM20": [0.075, 0.1, 0.125],
+        "ST6GAL1": [0.075, 0.1, 0.125],
+        "FBL": [0.03, 0.05, 0.07],
+        "myosin": [0.01, 0.03, 0.05],
+        "RAB5": [0.05, 0.075, 0.1],
+        "TUBA": [0.01, 0.03, 0.05],
+        "DSP": [0.01, 0.03, 0.05],
+        "SLC": [0.05, 0.075, 0.1],
+        #     "PXN": ,discarded - data quality
+        "GJA1": [0.01, 0.03, 0.05],
+        "CTNNB": [0.03, 0.05, 0.07],  # [0.01,0.03, 0.05],
+        "ACTB": [0.03, 0.05, 0.07],  # [0.01, 0.03,0.05] ,
+        "CETN2": [0.05, 0.075, 0.1],
+        "LC3B": [0.075, 0.1, 0.125],
+        "ZO1": [0.075, 0.1, 0.125]
+    }
+    stgal_topothin_pvals = [1]
+
+elif phase == 3:
+    stgal_topothin_pvals = [1]
+
+    ## PHASE 3
+    meanpixels = {
+        #     "LaminB": , # ignored for phase 3
+        "LAMP1": 3.5,
+        "Sec61": 1.875,
+        "TOM20": 3.4375,
+        "ST6GAL1": 5.625, #TODO
+        "FBL": 7.5,
+        "myosin": 1.875,  # 3.125,
+        "RAB5": 6.09375,
+        "TUBA": 4.5,
+        "DSP": 1.6875,
+        "SLC": 2.75,
+        # "PXN": , discarded - data quality
+        "GJA1": 4.25,  # use membrane?
+        "CTNNB": 2.03125,  # 1.625, #use membrane
+        "ACTB": 2.5,  # 1.875, # use observation
+        "CETN2": 5.0625,
+        "LC3B": 3.375,
+        "ZO1": 1.5
+
+    }
+
+    # phase3
+    cutoffs = {
+        #     "LaminB": , # ignored for phase 2
+        "LAMP1": [0.05, 0.07, 0.09],
+        "Sec61": [0.05, 0.075, 0.1],
+        "TOM20": [0.075, 0.1, 0.125],
+        "ST6GAL1": [0.05, 0.075, 0.1],#TODO
+        "FBL": [0.01, 0.03, 0.05],
+        "myosin": [0.01, 0.02, 0.03],  # [0.01, 0.03, 0.05],
+        "RAB5": [0.03, 0.05, 0.07],
+        "TUBA": [0.01, 0.03, 0.05],
+        "DSP": [0.01, 0.03, 0.05],
+        "SLC": [0.03, 0.05, 0.07],
+        #     "PXN": ,discarded - data quality
+        "GJA1": [0.01, 0.03, 0.05],
+        "CTNNB": [0.04, 0.05, 0.06],  # [0.01, 0.03, 0.05],
+        "ACTB": [0.04, 0.05, 0.06],  # [0.01, 0.03, 0.05],
+        "CETN2": [0.075, 0.1, 0.125],
+        "LC3B": [0.075, 0.1, 0.125],
+        "ZO1": [0.02, 0.06, 0.1]
+    }
+
+elif phase ==4:
+    stgal_topothin_pvals = [0]
+    meanpixels = {
+        "ST6GAL1": 5.625,  # TODO
+        "LAMP1": 3.5,
+        "Sec61": 1.875,
+        "TOM20": 3.4375,
+        "FBL": 7.5,
+        "myosin": 1.875,  # 3.125,
+        "RAB5": 6.09375,
+        "TUBA": 4.5,
+        "DSP": 1.6875,
+        "SLC": 2.75,
+        # "PXN": , discarded - data quality
+        "GJA1": 4.25,  # use membrane?
+        "CTNNB": 2.03125,  # 1.625, #use membrane
+        "ACTB": 2.5,  # 1.875, # use observation
+        "CETN2": 5.0625,
+        "LC3B": 3.375,
+        "ZO1": 1.5
+
+    }
+    # temp
+    cutoffs = {
+        #     "LaminB": , # ignored for phase 2
+        "LAMP1": [0.05, 0.07, 0.09],
+        "Sec61": [0.05, 0.075, 0.1],
+        "TOM20": [0.075, 0.1, 0.125],
+        "FBL": [0.01, 0.03, 0.05],
+        "myosin": [0.01, 0.02, 0.03],  # [0.01, 0.03, 0.05],
+        "RAB5": [0.03, 0.05, 0.07],
+        "TUBA": [0.01, 0.03, 0.05],
+        "DSP": [0.01, 0.03, 0.05],
+        "SLC": [0.03, 0.05, 0.07],
+        #     "PXN": ,discarded - data quality
+        "GJA1": [0.01, 0.03, 0.05],
+        "CTNNB": [0.04, 0.05, 0.06],  # [0.01, 0.03, 0.05],
+        "ACTB": [0.04, 0.05, 0.06],  # [0.01, 0.03, 0.05],
+        "CETN2": [0.075, 0.1, 0.125],
+        "LC3B": [0.075, 0.1, 0.125],
+        "ZO1": [0.02, 0.06, 0.1],
+        "ST6GAL1": [0.075, 0.0875, 0.1],  # TODO
+     }
 paramtypes = {
     "LaminB": ["f2params", "useclosing"],
     "LAMP1": "s2params",  # dont use filament? change lamp code
@@ -199,45 +262,49 @@ paramtypes = {
     "TOM20": "f2params",
     "ST6GAL1": ["s3params", "topothin"],
     "FBL": "s2params",
-    "myosin": "f3params",
+    "myosin": "f2params",
     "RAB5": "s2params",
     "TUBA": "f3params",
     "DSP": "s3params",
     "SLC": "s3params",
     "PXN": "f3params",
     "GJA1": "s3params",
-    "CTNNB": "s2params",
-    "ACTB": "f3params",
+    "CTNNB": "both",
+    "ACTB": "f2params",
     "CETN2": "s3params",
-    "LC3B": "s3params"
+    "LC3B": "s3params",
+    "ZO1": "f2params"
 }
 
 dictofparams = {}
-phase = 3
+
 for i, dirname in enumerate(maindirs):
     print(i, dirname, end="\t")
-    if dirname == "PXN" or dirname == "LaminB" or dirname =="ST6GAL1":
+    if dirname == "PXN" or dirname == "LaminB":
         continue
     print(i, dirname)
     #     print(i, channels[dirname])
     cstates = None
-    spvals = None
+    # spvals = None
     if dirname == "LaminB":
         spvals = [True, False]  # useclosing
     elif dirname == "ST6GAL1":
-        #         spvals = [1.6, 0.8] # phase 1
-        spvals = [0.5, 0.8, 1.1]  # phase 2
-        # spvals = [0.5, 0.8, 1.1]  # phase 2
+        pass
+        spvals = stgal_topothin_pvals # no longer using topological thin
     elif dirname == "PXN":
         continue
     if phase > 1:
         cutoffparams = cutoffs[dirname]  # PHASE 2 onwards
-        # TODO 0.125
-    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=0.125), cutoffparams,
-        paramname=paramtypes[dirname], secondparamvals=spvals)
+    dictofparams[dirname] = returnscalecutofflists(getscaleparameters(meanpixels[dirname], frac_deviation=fracdev),
+                                                   cutoffparams, paramname=paramtypes[dirname], secondparamvals=spvals)
+# dochannels = ["ZO1","ST6GAL1"]
+dochannels = ["ST6GAL1"]
+# dochannels = ["ZO1"]
 
 for i, dirname in enumerate(maindirs):
-    if dirname == "PXN" or dirname == "LaminB" or dirname =="ST6GAL1":
+    if dirname == "PXN" or dirname == "LaminB":# or dirname == "ST6GAL1":
+        continue
+    if dirname not in dochannels:
         continue
     mainpath = join(maindirpath, dirname)
     savepath = savedirpath + "/" + dirname + "/"
@@ -252,26 +319,5 @@ for i, dirname in enumerate(maindirs):
             for params in dictofparams[dirname]:
                 #                 print(channels[dirname] in f)
                 # print(params)
-                usefunction[dirname](mainfilepath, savepath, params)
-
-
-# f2_param1=[[0.1, 0.01], [0.2, 0.01], [0.4, 0.01], [0.8, 0.01], [1.6, 0.01]]
-# f2_param2=[[0.1, 0.01], [0.25, 0.01], [0.5, 0.01], [1, 0.01], [1.5, 0.01], [2, 0.2], [3,0.5]]
-# f2_param3=[[0.5, 0.01]]
-# laminf2params = [f2_param1,f2_param2,f2_param3]
-# closingstates = [ True, False]
-# laminparams = [{"f2params": laminf2, "useclosing":closingstate} for laminf2 in laminf2params for closingstate in closingstates]
-
-# s2_param1 = [[4, 0.12], [2, 0.09], [1, 0.02]]
-# s2_param2 = [[5,0.09], [2.5,0.07], [1,0.01]]
-# s2_param3 = [[2.5,0.09], [1.25,0.07], [0.5,0.01]]
-# lamps2s = [s2_param1, s2_param2, s2_param3]
-# lampf2scales = [0.5, 0.75, 1]
-# lampf2cutoffs = [0.15]
-# lampparams = [{"s2params":sparam,"f2params":[[scale,cutoff]]} for sparam in lamps2s for scale in lampf2scales for cutoff in lampf2cutoffs]
-
-
-# stgaltopo =[1.6, 0.8]
-# stgals3scale = [0.8, 1.2, 1.6]
-# stgals3cutoff = [0.02, 0.2]
-# stgalparams = [{"topothin":topo ,"s3params":[[scale,cutoff]]} for cutoff in stgals3cutoff for scale in stgals3scale for topo in stgaltopo]
+                print(params, type(params))
+                usefunction[dirname](mainfilepath, savepath, params=params, minarea=0)

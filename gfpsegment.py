@@ -2,31 +2,26 @@ import os
 
 from src.stackio.Channel import channel
 
-path_stackfolders = '../Results/2021/july9/lampstacks/'
-savedir = '../Results/2022/final_segmentations/LAMP1/'
-# path_stackfolders = '../Results/2021/mar31/sec61stacks/'
-channelname = "lamp1"
-# path_stackfolders = '../Results/2021/july16/TOMstacks/'
-# savedir = '../Results/2022/final_segmentations/TOM20/'
-# channelname = "fbl"
-# path_stackfolders = '../Results/2021/Sept3/FBLstacks/'
-# savedir = '../Results/2022/final_segmentations/FBL/'
-# channelname = "rab5"
-# path_stackfolders = '../Results/2021/Sept10/rab5/'
-# savedir = '../Results/2022/final_segmentations/RAB5/'
+channelname = "tjp1"
+
+path_stackfolders = '../Results/2022/May27/ZO1/'
+savedir = '../Results/2022/final_segmentations/ZO1/'
 assert os.path.exists(path_stackfolders)
 assert os.path.exists(savedir)
 
 print(os.listdir(path_stackfolders))
-print(os.listdir(savedir))
+# same as listdir ignoring directories
 flist = [f for f in os.listdir(savedir) if os.path.isfile(os.path.join(savedir, f))]
+# abspath for list
 fpathlist = [os.path.abspath(os.path.join(savedir, fp)).replace("\\", "/") for fp in flist]
+print(len(fpathlist))
 for subdir in os.listdir(path_stackfolders):
-    flag = 1
+
     subdirpath = os.path.join(path_stackfolders, subdir).replace("\\", "/")
     gfpfiles = [f for f in os.listdir(subdirpath) if os.path.isfile(os.path.join(subdirpath, f))]
 
     for filename in gfpfiles:
+        flag = 1
         rpefilename = os.path.join(subdirpath, filename).replace("\\", "/")
         print(filename)
         # print(rpefilename.split("."))

@@ -17,7 +17,12 @@ class Stack():
 
     # alphabets = ["D"]
 
-    def __init__(self, alphabet=None, channelname=None):
+    def __init__(self, alphabet: str = None, channelname: str = None):
+        """
+
+        :param alphabet:alphabet (e.g. A) used in naming the file e.g. P1-W2-*GFP*_*A04*_F003
+        :param channelname: name of channel
+        """
         if alphabet is None:
             warnings.warn(
                 "if alphabet is None all acceptable alphabets will be tested. This may slow speed down significantly")
@@ -28,9 +33,9 @@ class Stack():
         self.channels = ["C01", "C02", "C03", "C04"]
         self.Fs = ["F001", "F002", "F003", "F004", "F005", "F006"]
         self.channelname = channelname
-        self.channel = Channel.channel(self.channelname)
+        # self.channel = Channel.channel(self.channelname)
 
-    def findmesfile(self, flist):
+    def findmesfile(self, flist: types.PathLike):
         """
         locate and return the first encountered .mes file in a list of files. This file contains information about
         stacks that was missing from their filenames.
@@ -45,14 +50,20 @@ class Stack():
         return None
 
     def getdirectorylist(self, filepath: types.PathLike = ""):
+        """
+        returns subfiles and directories.
+
+        :param filepath: filepath
+        :return: list of subfiles/subdirectories
+        """
         return os.listdir(filepath)
 
     def imagestostack(self, tiff_files, dpath, rep, foo):
         """
-
-        :param tiff_files: list of
-        :param rep:
-        :param foo:
+        Convert a list of tiff files to a stack
+        :param tiff_files: list of tiff files
+        :param rep: replicate
+        :param foo: FOV
         :return:
         """
         flag = 0
@@ -78,15 +89,14 @@ class Stack():
 
     def filehasparameters(self, filename, r_in, f_in, c_in):
         """
-        obtains the parameters from individual image files
-        TODO: finalize and test
+        check for input parameters from individual image files
 
         :param filename: 
-        :param w_in: 
-        :param r_in: 
-        :param f_in: 
-        :param c_in: 
-        :return: 
+        :param w_in: Week no.
+        :param r_in: replicate no.
+        :param f_in: FOV no.
+        :param c_in: Well plate no.
+        :return: True if all parameters are part of filename. False otherwise
         """
         # only works for properly named files
         if not filename.endswith("tif"):
@@ -103,8 +113,15 @@ class Stack():
         else:
             return False
 
-    def returnstacksfromlist(self, filepath, savepath):
+    def generatestacksfromdirs(self, filepath: types.PathLike, savepath: types.PathLike, writestack: bool=True):
         """
+        generates stacks from list and saves then at savepath.
+        Dir structure:
+            savepath
+                |
+                |--W1 folder----|
+                |--W2 folder    |--list of files for respective week.
+                :
 
         :param filepath: file path
         :param savepath: save path
@@ -120,8 +137,7 @@ class Stack():
                 files = [f for f in os.listdir(dpath) if os.path.isfile(os.path.join(dpath, f))]
                 mesfile = self.findmesfile(files)
                 mesweekid = mesfile[:-4].split("-")[3:5]
-                # print(mesweekid, mesfile)
-
+                print(mesweekid, mesfile)
                 mesweekid = "-".join(["P1", mesweekid[1], mesweekid[0]])
                 fsavepath = os.path.join(self.savepath, mesweekid)
                 print(fsavepath, mesweekid, len(files))
@@ -139,7 +155,6 @@ class Stack():
                         omefilename = "_".join([mesweekid, rep, foo + ".ome.tif"])
                         if os.path.exists(os.path.join(fsavepath, omefilename)):
                             print(os.path.join(fsavepath, omefilename) + " already done")
-
                         else:
                             try:
                                 start_ts = datetime.datetime.now()
@@ -147,27 +162,25 @@ class Stack():
                                 if flag:
                                     images = np.asarray(ims)
                                     expanded = np.expand_dims(images, 0)
+                                    # note: if stack dimensions are in a different order uncomment and modify the following code to fix it
                                     # print(expanded.shape) # TCZYX
-
                                     # expanded = expanded.transpose(0, 2, 1, 3, 4)
-                                    # print(images.shape, expanded.shape, cimages.shape, expanded.transpose(0, 2, 1, 3, 4).shape)
+                                    # print(images.shape, expanded.shape)
                                     # print(expanded.shape) # TCZYX
-                                    # raise Exception
 
-                                    OmeTiffWriter.save(expanded, os.path.join(fsavepath, omefilename), compress=6)
-                                    # writer = omeTifWriter.OmeTifWriter(os.path.join(fsavepath, omefilename),
-                                    #                                    overwrite_file=False)
-                                    # writer.save(expanded)
-                                    print("saved file: ", omefilename, expanded.shape)
-                                    end_ts = datetime.datetime.now()
-                                    print("Calculated in ", end_ts - start_ts, "@ :", end_ts)
-                                    # raise Exception
+                                    if writestack:
+                                        OmeTiffWriter.save(expanded, os.path.join(fsavepath, omefilename), compress=6)
+                                        print("saved file: ", omefilename, expanded.shape)
+                                        end_ts = datetime.datetime.now()
+                                        print("Calculated in ", end_ts - start_ts, "@ :", end_ts)
+
                             except Exception as e:
                                 print(e)
 
 
 if __name__ == "__main__":
-    s = Stack(alphabet="G", channelname="lc3b")
-    filepath = "E:/Pushkar_backup/Results/data/prestack/FBL"
-    savepath = "C:/Users/satheps/PycharmProjects/Results/2021/Sept3/FBLstacks/"
-    s.returnstacksfromlist(filepath=filepath, savepath=savepath)
+    channelname = "ZO1"
+    s = Stack(alphabet=Channel.channel.getrepalphabet(channelname=channelname))
+    filepath = "E:/Pushkar_backup/Results/data/prestack/ZO1/"
+    savepath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/ZO1/"
+    s.generatestacksfromlist(filepath=filepath, savepath=savepath)

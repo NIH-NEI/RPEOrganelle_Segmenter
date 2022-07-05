@@ -25,7 +25,7 @@ ROOT_DIR = os.path.abspath("../")
 
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
-from src.RPE_Mask_RCNN_Feb22.mrcnn import utils
+from src.RPE_Mask_RCNN_Apr22.mrcnn import utils
 
 
 ############################################################
@@ -266,9 +266,10 @@ def draw_rois(image, rois, refined_rois, mask, class_ids, class_names, limit=10)
         class_ids[class_ids > 0].shape[0] / class_ids.shape[0]))
 
 
+# TODO: Replace with matplotlib equivalent?
 def draw_box(image, box, color):
-    """Draw 2-pixel width bounding boxes on the given image array.
-    color: list of 2 int values for RGB.
+    """Draw 3-pixel width bounding boxes on the given image array.
+    color: list of 3 int values for RGB.
     """
     y1, x1, y2, x2 = box
     image[y1:y1 + 2, x1:x2] = color

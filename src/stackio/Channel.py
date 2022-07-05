@@ -2,7 +2,7 @@ import warnings
 
 from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, segmentsec61tacks, segmenttom, \
     segmentstgal, segmentfbl, segmentmyh, segmentrab5, segmenttub, segmentdsp, segmentpxn, segmentslc, segmentactb, \
-    segmentcetn2, segmentctnnb, segmentgja, segmentlc3b
+    segmentcetn2, segmentctnnb, segmentgja, segmentlc3b, segmenttjp
 
 
 class channel():
@@ -34,12 +34,12 @@ class channel():
     }
 
     channelprotein = {
-        "dna": "",
+        "dna": "DNA",  # "Hoechst stain(nucleus)"
         "actin": "Beta-actin",
-        "membrane": "",
+        "membrane": "Membrane",
         "tom20": "tom20",
         "pxn": "Paxillin",
-        "sec61b": "",
+        "sec61b": "Sec61 beta",
         "tuba1b": "Alpha Tubulin",
         "lmnb1": "Lamin B1",
         "fbl": "Fibrillarin",
@@ -80,25 +80,26 @@ class channel():
         "gja1": "G",
         "ctnnb1": "F"
     }
+
     defaultparameters = {
-        "lmnb1": {"scale": None, "cutoff": None, "final": False, "minarea": 4}, # finalize
-        "lamp1": {"scale": 3.0625 / 3, "cutoff": 0.05, "final": True, "minarea": 3},# finalize
-        "sec61b": {"scale": 0.625, "cutoff": 0.075, "final": True, "minarea": 4},# finalize
-        "tom20": {"scale": 3.4375/3, "cutoff": 0.12, "final": True, "minarea": 2},# FINAL
-        "st6gal1": {"scale": None, "cutoff": None, "final": False, "minarea": 4},# NOT USED
-        "fbl": {"scale": 2.1875, "cutoff": 0.05, "final": False, "minarea": 5},# FINAL
-        "myh10": {"scale": 3.125/3, "cutoff": 0.01, "final": True, "minarea": 4},
-        "rab5": {"scale": 1.77734375, "cutoff": 0.07, "final": True, "minarea": 4},# FINAL
-        "tuba1b": {"scale": None, "cutoff": None, "final": False, "minarea": 4},
-        "dsp": {"scale": 0.5625, "cutoff": 0.03, "final": False, "minarea": 4},
-        "slc25a17": {"scale":2.75/3, "cutoff": 0.05, "final": False, "minarea": 4},#finalize
-        "pxn": {"scale": None, "cutoff": None, "final": False, "minarea": 4},# NOT USED
-        "gja1": {"scale": 1.59375, "cutoff": 0.03, "final": False, "minarea": 5},# finalize
-        "ctnnb1": {"scale": 1.625/3, "cutoff": 0.03, "final": False, "minarea": 5},# finalize
-        "actb": {"scale": 0.625, "cutoff": 0.03, "final": False, "minarea": 4},# finalize
-        "cetn2": {"scale": 1.6875, "cutoff": 0.075, "final": True, "minarea": 4},# finalize
-        "lc3b": {"scale": 1.125, "cutoff": 0.075, "final": True, "minarea": 4},# FINAL
-        "tjp1": {"scale": None, "cutoff": None, "final": False, "minarea": 4},
+        "lmnb1": {"scale": [None], "cutoff": [None], "final": False, "minarea": 2},  # FINAL
+        "lamp1": {"scale": [3.0625 / 3], "cutoff": [0.05], "final": True, "minarea": 3},  # FINAL
+        "sec61b": {"scale": [0.625], "cutoff": [0.075], "final": True, "minarea": 4},  # FINAL
+        "tom20": {"scale": [3.4375 / 3], "cutoff": [0.12], "final": True, "minarea": 2},  # FINAL
+        "st6gal1": {"scale": [1.875], "cutoff": [0.0875], "final": True, "minarea": 0},  # FINAL
+        "fbl": {"scale": [2.1875], "cutoff": [0.05], "final": True, "minarea": 5},  # FINAL
+        "myh10": {"scale": [1.640625 / 3], "cutoff": [0.01], "final": True, "minarea": 0},
+        "rab5": {"scale": [1.77734375], "cutoff": [0.07], "final": True, "minarea": 4},  # FINAL
+        "tuba1b": {"scale": [None], "cutoff": [None], "final": False, "minarea": 4},
+        "dsp": {"scale": [0.5625, 1.8984375 / 3], "cutoff": [0.03, 0.01], "final": True, "minarea": 0},
+        "slc25a17": {"scale": [2.75 / 3, 2.40625/3], "cutoff": [0.05, 0.03], "final": True, "minarea": 0},  # FINAL
+        "pxn": {"scale": [None], "cutoff": [None], "final": False, "minarea": 4},  # NOT USED
+        "gja1": {"scale": [1.59375, 1.0625], "cutoff": [0.03, 0.01], "final": True, "minarea": 0},  # FINAL
+        "ctnnb1": {"scale": [1.77345 / 3], "cutoff": [0.05], "final": True, "minarea": 0},  # FINAL
+        "actb": {"scale": [2.1875 / 3], "cutoff": [0.05], "final": True, "minarea": 0},  # FINAL
+        "cetn2": {"scale": [1.6875], "cutoff": [0.075], "final": True, "minarea": 2},  # FINAL
+        "lc3b": {"scale": [1.125], "cutoff": [0.075], "final": True, "minarea": 4},  # FINAL
+        "tjp1": {"scale": [0.5], "cutoff": [0.1], "final": True, "minarea": 0},
     }
     dirnames = {
         "lmnb1": "LaminB",
@@ -136,7 +137,7 @@ class channel():
         "actb": segmentactb,
         "cetn2": segmentcetn2,
         "lc3b": segmentlc3b,
-        "tjp1": 'not assigned yet',
+        "tjp1": segmenttjp,
     }
 
     def __init__(self, inputchannelname=None):
@@ -201,23 +202,34 @@ class channel():
     def getdefaultparams(channelname):
         if channel.defaultparameters[channelname]["final"] is not True:
             warnings.warn("Note: parameters are not yet final!")
-        parameterkeys = ["scale", "cutoff", "topothin"]
-        # TODO: niche multiparam cases
-        threshparams = [[channel.defaultparameters[channelname][subkey] for subkey in parameterkeys if
-                         subkey in channel.defaultparameters[channelname].keys()]]
+        # parameterkeys = ["scale", "cutoff", "topothin"]
+        parameterkeys = ["scale", "cutoff"]
+        assert len(channel.defaultparameters[channelname]["scale"]) == len(
+            channel.defaultparameters[channelname]["cutoff"]), "unequal number of parameters"
+        nkeys =len(channel.defaultparameters[channelname]["scale"])
+        threshparams = []
+        for i in range(nkeys):
+            subparams = []
+            for subkey in parameterkeys:
+                if subkey in channel.defaultparameters[channelname].keys():
+                    subparams.append(channel.defaultparameters[channelname][subkey][i])
+            threshparams.append(subparams)
+        # threshparams = [[channel.defaultparameters[channelname][subkey][i] for subkey in parameterkeys if
+        #                  subkey in channel.defaultparameters[channelname].keys() for i in
+        #                  range(len(channel.defaultparameters[channelname][subkey]))]]
         minarea = channel.defaultparameters[channelname]["minarea"]
         return threshparams, minarea
 
     @staticmethod
-    def segmentchannel(filename, savepath, params=None, channelname=None, minarea=None):
+    def segmentchannel(filename, savepath, params=None, channelname=None, minarea=None, **kwargs):
         if channelname is None:
             print("Input channel name!")
         if params is None:
             ch_params, ch_minarea = channel.getdefaultparams(channelname)
             params = ch_params
-            print(f"Using default parameters:{params}. To use different parameters input them as arguments")
+            print(f"Using default parameters:{params}. To use different parameters  input them as arguments")
         if minarea is not None:
             ch_minarea = minarea
         # print(self.usefunction[self.channelname])
         return channel.usefunction[channelname](fpath=filename, savepath=savepath, params=params,
-                                                channel=channelname, minarea=ch_minarea)
+                                                channel=channelname, minarea=ch_minarea, **kwargs)
