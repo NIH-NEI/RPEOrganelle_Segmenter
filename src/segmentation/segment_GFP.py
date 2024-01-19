@@ -34,8 +34,8 @@ def parseparam(params, string):
     """
     parse input parameter from list or dict
 
-    :param params: parameter obtained from input
-    :param string:  expected name of parameter
+    params: parameter obtained from input
+    string:  expected name of parameter
     :return: parameter value
     """
     paramvalue = None
@@ -53,12 +53,14 @@ def parseparam(params, string):
 
 def savesegmented(data, savepath, basename, parametertype=None, postprocessinginfo=None, useparameterinfo=True):
     """
-    segmented tif file
-    :param data:
-    :param savepath:
-    :param basename:
-    :param parametertype:
-    :param postprocessinginfo: e.g. 's3p'
+    Save segmented tif file
+    
+    Args:
+        data:
+        savepath:
+        basename:
+        parametertype:
+        postprocessinginfo: e.g. 's3p'
     :return:
     """
     filename = basename
@@ -74,11 +76,13 @@ def autoselect_normalization_parameters(imgstack, debug=False, percentile=99.99)
 
     Original code at:
     long-url: https://github.com/AllenCell/aics-segmentation
+    Args:
+        imgstack: input image stack
+        debug: toggle to display additional details for debugging or verbosity
+        percentile: percentile of data to include in the calculation
+    Returns:
+        Suggested low and high normalization parameters
 
-    :param imgstack:
-    :param debug:
-    :param percentile:
-    :return:
     """
 
     m, s = norm.fit(imgstack.flat)
@@ -120,6 +124,22 @@ def autoselect_normalization_parameters(imgstack, debug=False, percentile=99.99)
 
 
 def segmentsec61tacks(fpath, savepath, params, channel="sec61b", minarea=None):
+    """
+       Segments sec61b structures in 3D image stacks.
+
+       Args:
+           fpath (str): Path to the input image stack.
+           savepath (str): Path to save the segmented output.
+           params (dict or list):
+               - If dict: Dictionary containing segmentation parameters:
+                   - "f2params": List of Frangi filter parameters (list of lists).
+               - If list: List of Frangi vesselness filter parameters directly.
+           channel (str, optional): Name of the channel to segment. Defaults to "sec61b".
+           minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+       Returns:
+           None
+       """
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -158,6 +178,23 @@ def segmentsec61tacks(fpath, savepath, params, channel="sec61b", minarea=None):
 
 
 def segmentlaminstacks(fpath, savepath, params, channel="lmnb1", minarea=None, padsize=0):
+    """
+    Segments lamin structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f2params": List of Frangi filter parameters (list of lists).
+            - "useclosing": Boolean indicating whether to apply morphological closing (bool).
+        channel (str, optional): Name of the channel to segment. Defaults to "lmnb1".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        padsize (int, optional): Amount of padding to add to the image. Defaults to 0.
+
+    Returns:
+        None
+
+    """
     struct_img0 = get_stack_channel(fpath, channel)
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
     gscale = (0.5 / 0.216666)
@@ -221,6 +258,22 @@ def segmentlaminstacks(fpath, savepath, params, channel="lmnb1", minarea=None, p
 
 
 def segmenttom(fpath, savepath, params, channel="tom20", minarea=None):
+    """
+       Segments tom20 structures in 3D image stacks.
+
+       Args:
+           fpath (str): Path to the input image stack.
+           savepath (str): Path to save the segmented output.
+           params (dict or list):
+               - If dict: Dictionary containing segmentation parameters:
+                   - "f2params": List of Frangi filter parameters (list of lists).
+               - If list: List of Frangi filter parameters directly.
+           channel (str, optional): Name of the channel to segment. Defaults to "tom20".
+           minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+       Returns:
+           None
+       """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -263,6 +316,22 @@ def segmenttom(fpath, savepath, params, channel="tom20", minarea=None):
 
 
 def segmentlampstacks(fpath, savepath, params, channel="lamp1", minarea=None):  # DO NOT USE FILAMENTS FOR NOW
+    """
+     Segments Lamp1 structures in 3D image stacks.
+
+     Args:
+         fpath (str): Path to the input image stack.
+         savepath (str): Path to save the segmented output.
+         params (dict or list):
+             - If dict: Dictionary containing segmentation parameters:
+                 - "s2params": List of spot detection parameters (list of lists).
+             - If list: List of spot detection parameters directly.
+         channel (str, optional): Name of the channel to segment. Defaults to "lamp1".
+         minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+     Returns:
+            None
+     """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -313,15 +382,27 @@ def segmentlampstacks(fpath, savepath, params, channel="lamp1", minarea=None):  
 
 def segmentstgal(fpath, savepath, params, channel="st6gal1", method="nomo", minarea=None, thin_dist=2):
     """
-    TODO: method parameter only for testing
-    :param fpath:
-    :param savepath:
-    :param params:
-    :param channel:
-    :param method:
-    :param minarea:
-    :param thin_dist:
-    :return:
+    Segments st6gal1 structures in 3D image stacks using spot detection, Gaussian smoothing,
+    and optionally morphological opening and topology-preserving thinning.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict or list):
+            - If dict: Dictionary containing segmentation parameters:
+                - "s3params": List of 3D spot detection parameters (list of lists).
+                - "topothin" (optional): Distance for topology-preserving thinning.
+            - If list: List of 3D spot detection parameters directly.
+        channel (str, optional): Name of the channel to segment. Defaults to "st6gal1".
+        method (str, optional): Segmentation method, options:
+            - "nomo": Spot detection only.
+            - "mo": Spot detection with morphological opening.
+            - "mothin": Spot detection, morphological opening, and topology-preserving thinning.
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        thin_dist (int, optional): Distance for thinning. Used only if "mothin" method is selected.
+
+    Returns:
+        None
     """
 
     struct_img0 = get_stack_channel(fpath, channel)
@@ -393,6 +474,22 @@ def segmentstgal(fpath, savepath, params, channel="st6gal1", method="nomo", mina
 
 
 def segmentfbl(fpath, savepath, params, channel="fbl", minarea=None):
+    """
+    Segments fbl structures in 3D image stacks using spot detection and Gaussian smoothing.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict or list):
+            - If dict: Dictionary containing segmentation parameters:
+                - "s2params": List of spot detection parameters (list of lists).
+            - If list: List of spot detection parameters directly.
+        channel (str, optional): Name of the channel to segment. Defaults to "fbl".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+    Returns:
+        None
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -434,6 +531,20 @@ def segmentfbl(fpath, savepath, params, channel="fbl", minarea=None):
 
 
 def segmenttub(fpath, savepath, params, channel="tuba1b", minarea=None):
+    """
+    Segments Tubulin structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f3params": List of Frangi filter parameters (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "tuba1b".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+    Returns:
+        None
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -468,6 +579,22 @@ def segmenttub(fpath, savepath, params, channel="tuba1b", minarea=None):
 
 
 def segmentrab5(fpath, savepath, params, channel="rab5", minarea=None):
+    """
+    Segments rab5 structures in 3D image stacks using spot detection, Gaussian smoothing, and hole filling.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict or list):
+            - If dict: Dictionary containing segmentation parameters:
+                - "s2params": List of spot detection parameters (list of lists).
+            - If list: List of spot detection parameters directly.
+        channel (str, optional): Name of the channel to segment. Defaults to "rab5".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+    Returns:
+        None
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -522,6 +649,28 @@ def segmentrab5(fpath, savepath, params, channel="rab5", minarea=None):
 
 def segmentmyh(fpath, savepath, params, channel="myh10", minarea=None, method="2dvessellness", savesegmentation=True,
                returnsegmentation=True):
+    """
+    Segments myh10 structures in 3D image stacks using.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f2params": List of 2D Frangi filter parameters (list of lists).
+            - "f3params": List of 3D Frangi filter parameters (list of lists).
+            - "both": List of Frangi filter parameters to be used for both 2D and 3D (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "myh10".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        method (str, optional): Segmentation method, options:
+            - "2dvessellness": 2D Frangi filtering.
+            - "3dvessellness": 3D Frangi filtering.
+            - "both": Both 2D and 3D Frangi filtering combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmentation output. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
+    """
     struct_img0 = get_stack_channel(fpath, channel)
     # intensity_scaling_param = [2.5, 17]
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -570,6 +719,20 @@ def segmentmyh(fpath, savepath, params, channel="myh10", minarea=None, method="2
 
 
 def segmentpxn(fpath, savepath, params, channel="pxn", minarea=None):
+    """
+    Segments pxn structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f3params": List of Frangi filter parameters (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "pxn".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+
+    Returns:
+        None
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -601,6 +764,28 @@ def segmentpxn(fpath, savepath, params, channel="pxn", minarea=None):
 
 def segmentdsp(fpath, savepath, params, channel="dsp", minarea=None, method="3dspot", savesegmentation=True,
                returnsegmentation=True):
+    """
+    Segments dsp structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "s2params": List of 2D spot detection parameters (list of lists).
+            - "s3params": List of 3D spot detection parameters (list of lists).
+            - "both": List of spot detection parameters to be used for both 2D and 3D (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "dsp".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        method (str, optional): Segmentation method, options:
+            - "2dspot": 2D spot detection.
+            - "3dspot": 3D spot detection.
+            - "both": Both 2D and 3D spot detection combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmentation output. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -665,6 +850,28 @@ def segmentdsp(fpath, savepath, params, channel="dsp", minarea=None, method="3ds
 
 def segmentslc(fpath, savepath, params, channel="slc25a17", minarea=None, method="3dspot", savesegmentation=True,
                returnsegmentation=True):
+    """
+    Segments slc25a17 structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "s2params": List of 2D spot detection parameters (list of lists).
+            - "s3params": List of 3D spot detection parameters (list of lists).
+            - "both": List of spot detection parameters to be used for both 2D and 3D (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "slc25a17".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        method (str, optional): Segmentation method, options:
+            - "2dspot": 2D spot detection.
+            - "3dspot": 3D spot detection.
+            - "both": Both 2D and 3D spot detection combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmentation output. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
+    """
     struct_img0 = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
     ################################
@@ -724,6 +931,28 @@ def segmentslc(fpath, savepath, params, channel="slc25a17", minarea=None, method
 
 def segmentgja(fpath, savepath, params, channel="gja1", minarea=None, method="3dspot", savesegmentation=True,
                returnsegmentation=True):
+    """
+    Segments gja1 structures in 3D image stacks using spot detection, Gaussian smoothing, and optional 2D or 3D methods.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "s2params": List of 2D spot detection parameters (list of lists).
+            - "s3params": List of 3D spot detection parameters (list of lists).
+            - "both": List of spot detection parameters to be used for both 2D and 3D (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "gja1".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        method (str, optional): Segmentation method, options:
+            - "2dspot": 2D spot detection.
+            - "3dspot": 3D spot detection.
+            - "both": Both 2D and 3D spot detection combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmentation output. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -778,6 +1007,29 @@ def segmentgja(fpath, savepath, params, channel="gja1", minarea=None, method="3d
 
 def segmentctnnb(fpath, savepath, params, channel="ctnnb1", minarea=None, method="both", savesegmentation=True,
                  returnsegmentation=True):
+    """
+    Segments ctnnb1 structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "s2params": List of 2D spot detection parameters (list of lists).
+            - "f2params": List of 2D Frangi filtering parameters (list of lists).
+            - "both": List of parameters to be used for both 2D spot detection and Frangi filtering (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "ctnnb1".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+        method (str, optional): Segmentation method, options:
+            - "2dspot": 2D spot detection.
+            - "2dvessellness": 2D Frangi filtering.
+            - "both": Both 2D spot detection and Frangi filtering combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmentation output. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
+    """
+
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -836,16 +1088,26 @@ def segmentctnnb(fpath, savepath, params, channel="ctnnb1", minarea=None, method
 def segmentactb(fpath, savepath, params, channel="actb", minarea=0, method="2dvessellness", returnsegmentation=True,
                 savesegmentation=True):
     """
+    Segments actb structures in 3D image stacks.
 
-    :param fpath:
-    :param savepath:
-    :param params:
-    :param channel:
-    :param minarea:
-    :param method:
-    :param returnsegmentation:
-    :param savesegmentation:
-    :return:
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f2params": List of 2D Frangi filtering parameters (list of lists).
+            - "f3params": List of 3D Frangi filtering parameters (list of lists).
+            - "both": List of parameters to be used for both 2D and 3D Frangi filtering (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "actb".
+        minarea (int, optional): Minimum object area for filtering. Defaults to 0.
+        method (str, optional): Segmentation method, options:
+            - "2dvessellness": 2D Frangi filtering.
+            - "3dvessellness": 3D Frangi filtering.
+            - "both": Both 2D and 3D Frangi filtering combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmented image. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
     """
     struct_img0 = get_stack_channel(fpath, channel)
 
@@ -900,16 +1162,26 @@ def segmentactb(fpath, savepath, params, channel="actb", minarea=0, method="2dve
 def segmenttjp(fpath, savepath, params, channel="tjp1", minarea=0, method="2dvessellness", returnsegmentation=True,
                savesegmentation=True):
     """
+    Segments tjp1 structures in 3D image stacks.
 
-    :param fpath:
-    :param savepath:
-    :param params:
-    :param channel:
-    :param minarea:
-    :param method:
-    :param returnsegmentation:
-    :param savesegmentation:
-    :return:
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict): Dictionary containing segmentation parameters:
+            - "f2params": List of 2D Frangi filtering parameters (list of lists).
+            - "f3params": List of 3D Frangi filtering parameters (list of lists).
+            - "both": List of parameters to be used for both 2D and 3D Frangi filtering (list of lists).
+        channel (str, optional): Name of the channel to segment. Defaults to "tjp1".
+        minarea (int, optional): Minimum object area for filtering. Defaults to 0.
+        method (str, optional): Segmentation method, options:
+            - "2dvessellness": 2D Frangi filtering.
+            - "3dvessellness": 3D Frangi filtering.
+            - "both": Both 2D and 3D Frangi filtering combined.
+        savesegmentation (bool, optional): Whether to save the segmentation output. Defaults to True.
+        returnsegmentation (bool, optional): Whether to return the segmented image. Defaults to True.
+
+    Returns:
+        numpy.ndarray: The segmented image (if returnsegmentation is True).
     """
     struct_img0 = get_stack_channel(fpath, channel)
 
@@ -962,6 +1234,18 @@ def segmenttjp(fpath, savepath, params, channel="tjp1", minarea=0, method="2dves
 
 
 def segmentcetn2(fpath, savepath, params, channel="cetn2", minarea=None):
+    """
+    Segments cetn2 structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict or list): Dictionary containing segmentation parameters, or a list of spot detection parameters.
+            - If a dictionary, it should contain the key "s3params" with a list of spot detection parameters.
+            - If a list, it will be directly used as spot detection parameters.
+        channel (str, optional): Name of the channel to segment. Defaults to "cetn2".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+    """
     struct_img0 = get_stack_channel(fpath, channel)
     gaussian_smoothing_sigma = 1
     intensity_scaling_param = autoselect_normalization_parameters(struct_img0)
@@ -1009,6 +1293,18 @@ def segmentcetn2(fpath, savepath, params, channel="cetn2", minarea=None):
 
 
 def segmentlc3b(fpath, savepath, params, channel="lc3b", minarea=None):
+    """
+    Segments lc3b structures in 3D image stacks.
+
+    Args:
+        fpath (str): Path to the input image stack.
+        savepath (str): Path to save the segmented output.
+        params (dict or list): Dictionary containing segmentation parameters, or a list of spot detection parameters.
+            - If a dictionary, it should contain the key "s3params" with a list of spot detection parameters.
+            - If a list, it will be directly used as spot detection parameters.
+        channel (str, optional): Name of the channel to segment. Defaults to "lc3b".
+        minarea (int, optional): Minimum object area for filtering. Defaults to None.
+    """
     struct_img0 = get_stack_channel(fpath, channel)
 
     ################################
@@ -1061,8 +1357,9 @@ def segmentlc3b(fpath, savepath, params, channel="lc3b", minarea=None):
 def parse_segmentation_args(resp_path):
     """
     function to read arguments from a file
-    :param resp_path:
-    :return:
+    Args:
+        resp_path:
+    :return: split argument list
     """
     global DEFAULT_DATA_DIR
     fpath = os.path.abspath(resp_path)

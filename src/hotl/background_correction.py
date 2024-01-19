@@ -10,6 +10,20 @@ from src.segmentation.segment_GFP import get_stack_channel
 
 
 def create_histogram(plotimg, title, savepath):
+    """
+        Creates a histogram and cumulative distribution function (CDF) plot for a given image.
+
+        Args:
+            plotimg (numpy.ndarray): The image data as a NumPy array.
+            title (str): The title for the plot.
+            savepath (str): The path to save the plot as a PNG image.
+
+        Raises:
+            ImportError: If the `matplotlib` or `exposure` libraries are not installed.
+
+        Returns:
+            None
+        """
     fig, ax1 = plt.subplots()
     ax1.hist(plotimg.ravel(), bins=256, histtype='step', color='black')
     plt.title(title)

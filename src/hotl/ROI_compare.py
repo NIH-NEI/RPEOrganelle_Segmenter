@@ -1,11 +1,7 @@
 import os
-
 from aicsimageio import AICSImage
 from matplotlib import pyplot as plt
-
 from src.stackio import experimentalparams
-
-# from src.stackio import stack3d
 
 path_all_stacks = "C:/Users/satheps/PycharmProjects/Results/2022/final_stacks"
 path_all_segmentations = "C:/Users/satheps/PycharmProjects/Results/2022/final_segmentations"
@@ -25,7 +21,11 @@ roi_s = 750
 # usevars = {}
 def getwr(filename, gfp):
     """
+    Function to get week and replicate information
+    Args:
     :param filename: gfp_channel_filenames
+    :param gfp: channelname for handling some naming differences
+
     :return: week id, replicate id, week no. replicate number, common base string
     """
     filename = filename.split(".")[0]

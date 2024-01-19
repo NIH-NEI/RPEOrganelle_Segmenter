@@ -2,7 +2,7 @@ import os
 
 from tensorflow.python.client import device_lib
 
-from src.RPE_Mask_RCNN_Apr22 import generate_meta, predict
+from src.RPE_Mask_RCNN import generate_meta, predict
 
 
 def get_available_gpus():

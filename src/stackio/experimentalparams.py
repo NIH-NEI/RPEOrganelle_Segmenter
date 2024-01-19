@@ -17,8 +17,11 @@ setstackshape = (T, C, Z, X, Y)
 def generate_repinfo(_alphabets=None):
     """
     Input one of the alphabets based on specific file information
-    :param _alphabets: alphabets that occur in the _ middle _ part of filename
-    :return: list of replicate ids
+
+    Args:
+        _alphabets: alphabets that occur in the _ middle _ part of filename
+    Returns:
+        list of replicate ids
     """
     allalphabets = ["B", "C", "D", "E", "F", "G"]
     if _alphabets is None:
@@ -40,26 +43,16 @@ def generate_repinfo(_alphabets=None):
     return reps
 
 
-# def getwr(df, af, lf):
-#     basestringdna = "_".join(df.split("_")[:-2])
-#     basestringactin = "_".join(af.split("_")[:-3])
-#     basesstringlmp = "_".join(lf.split("_")[:-1])
-#
-#     print(basestringdna, basestringactin, basesstringlmp)
-#     assert basestringdna == basestringactin == basesstringlmp
-#     s1, r, _ = basestringdna.split("_")
-#     w = s1.split("-")[1]
-#     w_ = WS.index(w)
-#     r_ = int(r[1:]) - 2
-#     return w, r, w_, r_, basestringdna
-
 def get_rfcw(fname, checkw=False):
     """
-
-    :param fname: file name
-    :param checkw: check for week number also in name
-    :return: replicate, fov no, wellplate no., (week no) : r,f,c,(w)
+    Parse filename to obtain values of replicate, FOV, Channel and week
+    Args:
+        fname: file name
+        checkw: check for week number also in name
+    Returns:
+         replicate, fov no, wellplate no., (week no) : r,f,c,(w)
     """
+    s1, s2, r, fc = None, None, None, None
     split = fname.split("_")
     if len(split) == 3:
         s1, r, fc = split
@@ -68,12 +61,8 @@ def get_rfcw(fname, checkw=False):
     c = fc.split(".tif")[0][-3:]
     f = fc.split(".tif")[0][-16:-12]
     # print("f,c",f,c)
-    # raise Exception
-    # print(fname.split("_"))
-    # r_ = int(r[1:]) - 2
     if checkw:
         w = s1.split("-")[1]
-        # w_ = WS.index(w)
         return r, f, c, w
     return r, f, c
 
@@ -81,6 +70,7 @@ def get_rfcw(fname, checkw=False):
 def findtreatment(r):
     """
     Returns the type of treatement based on replicate id
+
     :param r: replicate id (IMP: must be converted to 0-9 range)
     :return: treatment id
     """
@@ -91,4 +81,3 @@ def findtreatment(r):
     else:
         treatment = 1
     return treatment
-

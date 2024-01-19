@@ -53,7 +53,7 @@ class channel():
         "cetn2": "Centrin-2",
         "slc25a17": "Peroxisomal membrane protein",
         "rab5": "Ras-related protein Rab-5A",
-        "gja1": "Connxin-43",
+        "gja1": "Connexin-43",
         "ctnnb1": "Beta-catenin"
     }
 

@@ -11,7 +11,7 @@ import numpy as np
 import scipy
 import skimage
 import tifffile
-from src.RPE_Mask_RCNN_Apr22.savgol import SavitzkyGolay2D
+from src.RPE_Mask_RCNN.savgol import SavitzkyGolay2D
 
 if not sys.warnoptions:
     import warnings
@@ -26,12 +26,12 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 # Import Mask RCNN
 if not ROOT_DIR in sys.path:
     sys.path.append(ROOT_DIR)  # To find local version of the library
-from src.RPE_Mask_RCNN_Apr22.mrcnn.config import Config
-from src.RPE_Mask_RCNN_Apr22.mrcnn import model as modellib, utils
+from src.RPE_Mask_RCNN.mrcnn.config import Config
+from src.RPE_Mask_RCNN.mrcnn import model as modellib, utils
 
-from src.RPE_Mask_RCNN_Apr22 import rpesegm, rpeutil
-from src.RPE_Mask_RCNN_Apr22.util import slice_area
-from src.RPE_Mask_RCNN_Apr22.rpefs import RpeTiffStack
+from src.RPE_Mask_RCNN import rpesegm, rpeutil
+from src.RPE_Mask_RCNN.util import slice_area
+from src.RPE_Mask_RCNN.rpefs import RpeTiffStack
 
 class RpeInferenceConfig(Config):
     # Give the configuration a recognizable name

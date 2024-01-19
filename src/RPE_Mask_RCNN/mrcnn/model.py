@@ -37,7 +37,7 @@ if not hasattr(tf, 'log'):
 #import tensorflow.keras.engine as KE
 #import tensorflow.keras.models as KM
 
-from src.RPE_Mask_RCNN_Apr22.mrcnn import utils
+from src.RPE_Mask_RCNN.mrcnn import utils
 
 # Requires TensorFlow 1.3+ and Keras 2.0.8+.
 from distutils.version import LooseVersion

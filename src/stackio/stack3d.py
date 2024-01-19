@@ -19,9 +19,11 @@ class Stack():
 
     def __init__(self, alphabet: str = None, channelname: str = None):
         """
+        Args:
+            alphabet:alphabet (e.g. A) used in naming the file e.g. P1-W2-*GFP*_*A04*_F003
+            channelname: name of channel
+        Returns:
 
-        :param alphabet:alphabet (e.g. A) used in naming the file e.g. P1-W2-*GFP*_*A04*_F003
-        :param channelname: name of channel
         """
         if alphabet is None:
             warnings.warn(
@@ -39,9 +41,10 @@ class Stack():
         """
         locate and return the first encountered .mes file in a list of files. This file contains information about
         stacks that was missing from their filenames.
-
-        :param flist: list of files
-        :return: filename of .mes file; or None if no file found
+        Args:
+            flist: list of files
+        Returns:
+            filename of .mes file; or None if no file found
         """
         for f in flist:
             if f.__contains__(".mes"):
@@ -53,18 +56,22 @@ class Stack():
         """
         returns subfiles and directories.
 
-        :param filepath: filepath
-        :return: list of subfiles/subdirectories
+        Args:
+            filepath: filepath
+        Returns:
+            list of subfiles/subdirectories
         """
         return os.listdir(filepath)
 
     def imagestostack(self, tiff_files, dpath, rep, foo):
         """
         Convert a list of tiff files to a stack
-        :param tiff_files: list of tiff files
-        :param rep: replicate
-        :param foo: FOV
-        :return:
+        Args:
+            tiff_files: list of tiff files
+            rep: replicate
+            foo: FOV
+        Returns:
+
         """
         flag = 0
         ims = []
@@ -90,13 +97,14 @@ class Stack():
     def filehasparameters(self, filename, r_in, f_in, c_in):
         """
         check for input parameters from individual image files
-
-        :param filename: 
-        :param w_in: Week no.
-        :param r_in: replicate no.
-        :param f_in: FOV no.
-        :param c_in: Well plate no.
-        :return: True if all parameters are part of filename. False otherwise
+        Args:
+            filename: filename
+            w_in: Week no.
+            r_in: replicate no.
+            f_in: FOV no.
+            c_in: Well plate no.
+        Returns: 
+            True if all parameters are part of filename. False otherwise
         """
         # only works for properly named files
         if not filename.endswith("tif"):
@@ -122,10 +130,11 @@ class Stack():
                 |--W1 folder----|
                 |--W2 folder    |--list of files for respective week.
                 :
-
-        :param filepath: file path
-        :param savepath: save path
-        :return:
+        Args:
+            filepath: file path
+            savepath: save path
+        Returns:
+            
         """
         self.filepath = filepath
         self.savepath = savepath
