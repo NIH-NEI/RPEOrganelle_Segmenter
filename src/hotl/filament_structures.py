@@ -11,8 +11,8 @@ from src.stackio.Channel import channel
 ####################################ACTB####################################
 
 from src.segmentation.segment_GFP import segmentactb
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Stacks/ACTB/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Segmented/ACTB/"
+maindirpath = "../Results/../filament/Stacks/ACTB/"
+savedirpath = "../Results/../filament/Segmented/ACTB/"
 
 assert os.path.exists(maindirpath)
 assert os.path.exists(savedirpath)
@@ -38,8 +38,8 @@ for f in os.listdir(maindirpath):
 ####################################MYH####################################
 
 # from src.segmentation.segment_GFP import segmentmyh
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Stacks/MYH/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Segmented/MYH/"
+# maindirpath = "..Results/../../filament/Stacks/MYH/"
+# savedirpath = "../Results/../filament/Segmented/MYH/"
 #
 # assert os.path.exists(maindirpath)
 # assert os.path.exists(savedirpath)
@@ -64,8 +64,8 @@ for f in os.listdir(maindirpath):
 ####################################CTNNB####################################
 
 # from src.segmentation.segment_GFP import segmentctnnb
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Stacks/CTNNB/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/filament/Segmented/CTNNB/"
+# maindirpath = "../Results/../filament/Stacks/CTNNB/"
+# savedirpath = "../Results/../filament/Segmented/CTNNB/"
 #
 # assert os.path.exists(maindirpath)
 # assert os.path.exists(savedirpath)

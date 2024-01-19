@@ -11,8 +11,8 @@ from src.stackio.Channel import channel
 ####################################dsp####################################
 #
 # from src.segmentation.segment_GFP import segmentdsp
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Stacks/DSP/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Segmented/DSP/"
+# maindirpath = "../Results/../spotlike/Stacks/DSP/"
+# savedirpath = "../Results/../spotlike/Segmented/DSP/"
 #
 # assert os.path.exists(maindirpath)
 # assert os.path.exists(savedirpath)
@@ -38,8 +38,8 @@ from src.stackio.Channel import channel
 ####################################gja1####################################
 
 # from src.segmentation.segment_GFP import segmentgja
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Stacks/GJA1/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Segmented/GJA1/"
+# maindirpath = "../Results/../spotlike/Stacks/GJA1/"
+# savedirpath = "../Results/../spotlike/Segmented/GJA1/"
 #
 # assert os.path.exists(maindirpath)
 # assert os.path.exists(savedirpath)
@@ -64,8 +64,8 @@ from src.stackio.Channel import channel
 ####################################SLC####################################
 
 # from src.segmentation.segment_GFP import segmentslc
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Stacks/SLC/"
-# savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/spotlike/Segmented/SLC/"
+# maindirpath = "../Results/../spotlike/Stacks/SLC/"
+# savedirpath = "../Results/../spotlike/Segmented/SLC/"
 #
 # assert os.path.exists(maindirpath)
 # assert os.path.exists(savedirpath)
@@ -88,8 +88,8 @@ from src.stackio.Channel import channel
 #                         method=method)
 ####################################SLC####################################
 from src.segmentation.segment_GFP import segmentstgal
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/Stacks_hotl/ST6GAL1/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/Hotl_phases/test/ST6GAL1/"
+maindirpath = "../Results/../Stacks_hotl/ST6GAL1/"
+savedirpath = "../Results/../Hotl_phases/test/ST6GAL1/"
 
 assert os.path.exists(maindirpath)
 assert os.path.exists(savedirpath)

@@ -7,9 +7,9 @@ from src.segmentation.segment_GFP import segmentlaminstacks, segmentlampstacks, 
     segmentactb, segmentcetn2, segmentctnnb, segmentgja, segmentlc3b, segmenttjp
 from src.stackio import Channel
 
-# maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/Stacks_hotl/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/June10/stgaltest/"
+# maindirpath = "../Results/../Stacks/"
+maindirpath = "../Results/../Stacks_hotl/"
+savedirpath = "../Results/../stgaltest/"
 maindirs = listdir(maindirpath)
 savedirs = listdir(savedirpath)
 

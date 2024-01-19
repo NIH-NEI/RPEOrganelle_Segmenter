@@ -9,8 +9,8 @@ import os
 
 from src.stackio.Channel import channel
 
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2021/Oct8/Stacks/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr1/postproc_p3_minarea_iter2/"
+maindirpath = "../Results/../Stacks/"
+savedirpath = "../Results/../postproc_p3_minarea_iter2/"
 
 assert os.path.exists(maindirpath)
 assert os.path.exists(savedirpath)

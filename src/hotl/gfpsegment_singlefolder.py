@@ -3,8 +3,8 @@ from src.stackio.Channel import channel
 from src.segmentation.segment_GFP import segmentslc
 
 
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/bkgcorr_tests/bkgcorr_all/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/bkgcorr_tests/bkgcorr_seg/"
+maindirpath = "../Results/2022/../bkgcorr_tests/bkgcorr_all/"
+savedirpath = "../Results/2022/../bkgcorr_tests/bkgcorr_seg/"
 
 assert os.path.exists(maindirpath)
 assert os.path.exists(savedirpath)

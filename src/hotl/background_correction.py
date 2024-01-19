@@ -42,8 +42,8 @@ def create_histogram(plotimg, title, savepath):
 
 ####################################ACTB####################################
 
-maindirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/bkgcorr_tests/SLC_ex/"
-savedirpath = "C:/Users/satheps/PycharmProjects/Results/2022/Apr8/bkgcorr_tests/"
+maindirpath = "../Results/../bkgcorr_tests/SLC_ex/"
+savedirpath = "../Results/../../bkgcorr_tests/"
 
 assert os.path.exists(maindirpath)
 assert os.path.exists(savedirpath)

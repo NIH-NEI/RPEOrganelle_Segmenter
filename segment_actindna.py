@@ -15,11 +15,11 @@ print("GPUS", get_available_gpus())
 gpucount = '1'  # needs string input for argparse
 imgspergpu = '1'  # ?
 
-imgdir = 'C:/Users/satheps/PycharmProjects/Results/2021/june25/laminstacks/'
+imgdir = '../Results/.././laminstacks/'
 
 datadir = imgdir
 for r, readdir in enumerate(os.listdir(datadir)):
-    modelweights = 'C:/Users/satheps/PycharmProjects/Results/2022/Jan21/model_weights/'
+    modelweights = '../Results/../../model_weights/'
     subdirname = os.path.join(datadir, readdir)
     if meta:
         metadata_arguments = [None, datadir]

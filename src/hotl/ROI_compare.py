@@ -3,11 +3,11 @@ from aicsimageio import AICSImage
 from matplotlib import pyplot as plt
 from src.stackio import experimentalparams
 
-path_all_stacks = "C:/Users/satheps/PycharmProjects/Results/2022/final_stacks"
-path_all_segmentations = "C:/Users/satheps/PycharmProjects/Results/2022/final_segmentations"
+path_all_stacks = "../Results/../final_stacks"
+path_all_segmentations = "../Results/../final_segmentations"
 dirlist_stacks = os.listdir(path_all_stacks)
 dirlist_segs = os.listdir(path_all_segmentations)
-savepath = "C:/Users/satheps/PycharmProjects/Results/2022/Jun24/illustration_imgs/"
+savepath = "../Results/../illustration_imgs/"
 assert dirlist_segs == dirlist_stacks
 assert os.path.exists(savepath)
 roi_r = 3

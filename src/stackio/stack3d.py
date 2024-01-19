@@ -190,6 +190,6 @@ class Stack():
 if __name__ == "__main__":
     channelname = "ZO1"
     s = Stack(alphabet=Channel.channel.getrepalphabet(channelname=channelname))
-    filepath = "E:/Pushkar_backup/Results/data/prestack/ZO1/"
-    savepath = "C:/Users/satheps/PycharmProjects/Results/2022/May27/ZO1/"
+    filepath = "../data/prestack/ZO1/"
+    savepath = "../Results/2022/May27/ZO1/"
     s.generatestacksfromlist(filepath=filepath, savepath=savepath)

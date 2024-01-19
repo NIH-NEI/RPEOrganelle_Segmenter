@@ -68,7 +68,7 @@ def csvtoids(argv):
     print('OK.')
 
 if __name__ == '__main__':
-    csvname = "C:/Users/satheps/PycharmProjects/Results/2022/Mar18/csvtest/sec61/P1-W1-SEC_G02_F001_Actin_RPE.csv"
+    csvname = "../Results/../csvtest/sec61/P1-W1-SEC_G02_F001_Actin_RPE.csv"
     shape = (27,1078, 1278)
     args = [None, csvname, shape]
 
