@@ -9,16 +9,13 @@ Human in the loop process for parameter selection to improve segmentations. The 
 
 ## Instructions
 
-1. Install:
+# 1. Install:
 ```
-pip install RPEOrganelle_Segmenter
+git clone https://github.com/RPEGoogleMap/RPEOrganelle_Segmenter
 ```
 
-2. Analyze set of segmented channels:
-
+# 2. Analyze set of segmented channels:
+Given paths for stacks of a channel, and location for saving files, run gfpsegment.py
 ```python
-from src.stackio import stack3d
-
-
-
+(<path-to-environment>/)python <path-to_project>/gfpsegment.py
 ```
