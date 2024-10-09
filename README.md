@@ -11,7 +11,7 @@ Human in the loop process for parameter selection to improve segmentations. The 
 
 # 1. Install:
 ```
-git clone https://github.com/RPEGoogleMap/RPEOrganelle_Segmenter
+git clone https://github.com/NIH-NEI/RPEOrganelle_Segmenter
 ```
 
 # 2. Analyze set of segmented channels:
