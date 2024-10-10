@@ -17,6 +17,7 @@ temp = Channel
 
 phase = 4
 
+
 def getscaleparameters(mean_pixel_dimension=None, frac_deviation=0.5):
     """
     By default frac_deviation = 0.5 for phase 1, 0.25 for phase 2, 0.125 for phase 3
@@ -212,7 +213,7 @@ elif phase == 3:
         "ZO1": [0.02, 0.06, 0.1]
     }
 
-elif phase ==4:
+elif phase == 4:
     stgal_topothin_pvals = [0]
     meanpixels = {
         "ST6GAL1": 5.625,
@@ -254,7 +255,7 @@ elif phase ==4:
         "LC3B": [0.075, 0.1, 0.125],
         "ZO1": [0.02, 0.06, 0.1],
         "ST6GAL1": [0.075, 0.0875, 0.1],
-     }
+    }
 paramtypes = {
     "LaminB": ["f2params", "useclosing"],
     "LAMP1": "s2params",  # dont use filament? change lamp code
@@ -290,7 +291,7 @@ for i, dirname in enumerate(maindirs):
         spvals = [True, False]  # useclosing
     elif dirname == "ST6GAL1":
         pass
-        spvals = stgal_topothin_pvals # no longer using topological thin
+        spvals = stgal_topothin_pvals  # no longer using topological thin
     elif dirname == "PXN":
         continue
     if phase > 1:
@@ -302,7 +303,7 @@ dochannels = ["ST6GAL1"]
 # dochannels = ["ZO1"]
 
 for i, dirname in enumerate(maindirs):
-    if dirname == "PXN" or dirname == "LaminB":# or dirname == "ST6GAL1":
+    if dirname == "PXN" or dirname == "LaminB":  # or dirname == "ST6GAL1":
         continue
     if dirname not in dochannels:
         continue
