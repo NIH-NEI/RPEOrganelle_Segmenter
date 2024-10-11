@@ -11,6 +11,7 @@ from src.stackio.Channel import channel
 ####################################ACTB####################################
 
 from src.segmentation.segment_GFP import segmentactb
+
 maindirpath = "../Results/../filament/Stacks/ACTB/"
 savedirpath = "../Results/../filament/Segmented/ACTB/"
 
@@ -19,7 +20,7 @@ assert os.path.exists(savedirpath)
 minareas = [0]
 # usechannels = ["actb"]#, "ctnnb1", "myh10"]
 
-methods = ["both","3dvessellness", "2dvessellness"]
+methods = ["both", "3dvessellness", "2dvessellness"]
 # methods = ["2dvessellness"]
 # usechanneldirnames  = [channel.dirnames[c] for c in usechannels]
 print(os.listdir(maindirpath))
