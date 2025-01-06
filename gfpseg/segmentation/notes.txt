@@ -1,0 +1,18 @@
+Compatibility issues.
+
+1. The compatibility issue between 'numpy' and 'aicssegmentation' has been fixed by replacing a few modules
+from aicssegmentation.core package with local (modified) versions: hessian.py, vessel.py and utils.py
+
+Deprecation warning from the older version:
+	Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`.
+	In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either
+	in an error or a different result.
+
+2. The deprecated 'in_place' argument in skimage.remove_small_objects() has been removed.
+
+Deprecation warning from the older version:
+	in_place argument is deprecated and will be removed in version 1.0. To avoid this warning,
+	please do not use the in_place argument. Please see remove_small_objects documentation for more details.
+	Please use out argument instead.
+
+3. The deprecated 'compress=6' argument in tifffile.imwrite() has been replaced with 'compression="zlib"'.

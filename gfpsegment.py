@@ -1,9 +1,11 @@
-import os
+import os, sys
 import argparse
-from src.stackio.Channel import channel
+from gfpseg.stackio.Channel import channel
 
 
 def segment_all_gfpfiles(path_stackfolders, channelname, savedir):
+    savedir = savedir.replace('\\', '/')
+    if not savedir.endswith('/'): savedir = savedir+'/'
     print(os.listdir(path_stackfolders))
     # same as listdir ignoring directories
     flist = [f for f in os.listdir(savedir) if os.path.isfile(os.path.join(savedir, f))]
@@ -21,7 +23,7 @@ def segment_all_gfpfiles(path_stackfolders, channelname, savedir):
             print(filename)
             # print(rpefilename.split("."))
             # print(rpefilename.split(".")[-3])
-            basepath = os.path.abspath(savedir + filename.split(".")[-3]).replace("\\", "/")
+            basepath = os.path.abspath(os.path.join(savedir, filename.split(".")[-3])).replace("\\", "/")
             for i in range(len(fpathlist)):
                 if basepath in fpathlist[i]:
                     print(f"basepath already exists. Ignore segmentation [{basepath} in {fpathlist[i]}]", flush=True)
@@ -32,22 +34,23 @@ def segment_all_gfpfiles(path_stackfolders, channelname, savedir):
                 channel.segmentchannel(filename=rpefilename, savepath=savedir, channelname=channelname)
 
 
-def main():
+def main(arglist):
     parser = argparse.ArgumentParser(
         description='Segment GFP channels from given stacks')
     parser.add_argument('-c', '--channelname', required=True,
                         metavar='name of channel',
                         default='tjp1',
                         help='Name of gfp organelle. See readme file for supported channels')
-    parser.add_argument('-p', '--path_stackfolders', required=True, action="store_true",
+    parser.add_argument('-p', '--path_stackfolders', required=True,
                         help="Path to where the folders containing the stacks are stored.",
                         default='../Results/../ZO1/')
     parser.add_argument('-s', '--savedir', required=True,
                         help="Directory where segmented files should be saved",
                         default='../Results/../final_segmentations/ZO1/')
 
-    args = parser.parse_known_args()
-
+    args = parser.parse_args(arglist)
+    print(args)
+    
     assert os.path.exists(args.path_stackfolders)
     assert os.path.exists(args.savedir)
 
@@ -55,4 +58,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

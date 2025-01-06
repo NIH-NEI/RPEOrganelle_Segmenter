@@ -41,7 +41,7 @@ the intensity images.
 4. Create Conda Virtual Environment (do this once on the first run):
 
    ```
-   conda env create -f environment.yml
+   conda env create -f conda-environment.yml
    ```
 
 5. Activate the Virtual Environment:
@@ -85,4 +85,4 @@ python gfpsegment.py --help
 ## Contributors
 
 * *Pushkar Sathe*
-* *Andrei Volkov* (RPE_segmentation repository) 
+* *Andrei Volkov* (RPE_segmentation repository, version compatibility, API access from external Python projects)

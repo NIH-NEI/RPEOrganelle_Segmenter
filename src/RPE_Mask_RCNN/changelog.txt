@@ -1,6 +1,0 @@
-
-2022-03-29
-- Updated 3D assembly algorithm
-- Small artifacts (protrusions, "lakes", "islands") are filtered out
-- Added --cell-ids <N> option to generate _ids.tif; parameter specifies number of dilations for Actin
-
