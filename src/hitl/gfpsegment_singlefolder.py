@@ -2,7 +2,6 @@ import os
 from src.stackio.Channel import channel
 from src.segmentation.segment_GFP import segmentslc
 
-
 maindirpath = "../Results/2022/../bkgcorr_tests/bkgcorr_all/"
 savedirpath = "../Results/2022/../bkgcorr_tests/bkgcorr_seg/"
 
@@ -11,7 +10,7 @@ assert os.path.exists(savedirpath)
 minareas = [0]
 # usechannels = ["dsp"]#, "slc25a17", "gja110"]
 
-methods = ["both","3dspot", "2dspot"]
+methods = ["both", "3dspot", "2dspot"]
 # methods = ["3dspot"]
 # methods = ["2dvessellness"]
 # usechanneldirnames  = [channel.dirnames[c] for c in usechannels]

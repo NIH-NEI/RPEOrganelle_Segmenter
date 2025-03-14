@@ -21,10 +21,10 @@ usechannels = ["slc25a17"]
 params = {
     # "dsp":[],
     # "gja1":[],
-    "slc25a17":[[1.03125,0.07]]
+    "slc25a17": [[1.03125, 0.07]]
 
 }
-usechanneldirnames  = [channel.dirnames[c] for c in usechannels]
+usechanneldirnames = [channel.dirnames[c] for c in usechannels]
 print(os.listdir(maindirpath))
 for subdir in os.listdir(maindirpath):
     # print(subdir, channel.dirnames.values())
@@ -40,7 +40,9 @@ for subdir in os.listdir(maindirpath):
             print(rpefilename)
             for minarea in minareas:
                 try:
-                    channel.segmentchannel(filename=rpefilename, savepath=savesubdirpath+"/",params=params[usechannel], channelname=usechannel, minarea=minarea)
+                    channel.segmentchannel(filename=rpefilename, savepath=savesubdirpath + "/",
+                                           params=params[usechannel], channelname=usechannel, minarea=minarea)
                 except KeyError as k:
                     print("keyerror, using current default parameters")
-                    channel.segmentchannel(filename=rpefilename, savepath=savesubdirpath + "/", channelname=usechannel, minarea=minarea)
+                    channel.segmentchannel(filename=rpefilename, savepath=savesubdirpath + "/", channelname=usechannel,
+                                           minarea=minarea)
